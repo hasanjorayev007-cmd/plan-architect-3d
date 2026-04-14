@@ -87,4 +87,31 @@ export const translations = {
   },
 } as const;
 
-export type TranslationKey = typeof translations['en'];
+export type TranslationKey = {
+  login: {
+    title: string;
+    username: string;
+    password: string;
+    secretCode: string;
+    submit: string;
+    error: string;
+  };
+  dashboard: {
+    start: string;
+    upload: string;
+    uploadHint: string;
+    dragDrop: string;
+    orClick: string;
+    processing: string;
+    detecting: string;
+    generating: string;
+    exporting: string;
+    download: string;
+    newProject: string;
+    logout: string;
+    success: string;
+    error: string;
+    wallHeight: string;
+    wallThickness: string;
+  };
+};
