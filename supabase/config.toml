@@ -1,1 +1,4 @@
 project_id = "serbsrbtlembxzzkkdcx"
+
+[functions.generate-3d]
+verify_jwt = false
