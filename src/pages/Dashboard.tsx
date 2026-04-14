@@ -18,6 +18,7 @@ const Dashboard = () => {
   const [errorMsg, setErrorMsg] = useState('');
   const [wallHeight, setWallHeight] = useState(2.8);
   const [wallThickness, setWallThickness] = useState(0.2);
+  const [floorsCount, setFloorsCount] = useState(1);
 
   const processFile = useCallback(async (file: File) => {
     if (!file.type.match(/^image\/(jpeg|png)$/)) return;
@@ -39,6 +40,7 @@ const Dashboard = () => {
             image: base64,
             wallHeight,
             wallThickness,
+            floorsCount,
           },
         });
 
@@ -60,7 +62,7 @@ const Dashboard = () => {
       }
     };
     reader.readAsDataURL(file);
-  }, [wallHeight, wallThickness, t]);
+  }, [wallHeight, wallThickness, floorsCount, t]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -121,7 +123,7 @@ const Dashboard = () => {
           {stage === 'idle' && !preview && (
             <>
               {/* Parameters */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 <div>
                   <label className="block text-xs text-muted-foreground mb-1">{t.dashboard.wallHeight}</label>
                   <input
@@ -139,6 +141,17 @@ const Dashboard = () => {
                     step="0.05"
                     value={wallThickness}
                     onChange={e => setWallThickness(Number(e.target.value))}
+                    className="w-full bg-secondary border border-border rounded-md px-3 py-2 text-sm text-foreground font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-muted-foreground mb-1">Qavatlar soni</label>
+                  <input
+                    type="number"
+                    step="1"
+                    min="1"
+                    value={floorsCount}
+                    onChange={e => setFloorsCount(Number(e.target.value))}
                     className="w-full bg-secondary border border-border rounded-md px-3 py-2 text-sm text-foreground font-mono"
                   />
                 </div>
