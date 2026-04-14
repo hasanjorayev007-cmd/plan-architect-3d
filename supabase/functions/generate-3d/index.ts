@@ -23,12 +23,12 @@ interface FloorPlan {
   height: number;
 }
 
-function generateDXF(plan: FloorPlan, wallHeight: number): string {
+function generateDXF(plan: FloorPlan, wallHeight: number, floorsCount: number = 1): string {
   const lines: string[] = [];
   
   // DXF Header
   lines.push('0', 'SECTION', '2', 'HEADER');
-  lines.push('9', '$ACADVER', '1', 'AC1027');
+  lines.push('9', '$ACADVER', '1', 'AC1009'); // Changed from AC1027 for AutoCAD compatibility
   lines.push('9', '$INSUNITS', '70', '6'); // meters
   lines.push('0', 'ENDSEC');
   
@@ -36,7 +36,7 @@ function generateDXF(plan: FloorPlan, wallHeight: number): string {
   lines.push('0', 'SECTION', '2', 'TABLES');
   
   // Layer table
-  lines.push('0', 'TABLE', '2', 'LAYER', '70', '3');
+  lines.push('0', 'TABLE', '2', 'LAYER', '70', '4');
   
   // WALLS_3D layer
   lines.push('0', 'LAYER', '2', 'WALLS_3D', '70', '0', '62', '7', '6', 'CONTINUOUS');
@@ -44,73 +44,101 @@ function generateDXF(plan: FloorPlan, wallHeight: number): string {
   lines.push('0', 'LAYER', '2', 'DOORS', '70', '0', '62', '3', '6', 'CONTINUOUS');
   // WINDOWS layer
   lines.push('0', 'LAYER', '2', 'WINDOWS', '70', '0', '62', '5', '6', 'CONTINUOUS');
+  // ROOF layer
+  lines.push('0', 'LAYER', '2', 'ROOF', '70', '0', '62', '2', '6', 'CONTINUOUS');
   
   lines.push('0', 'ENDTAB');
+  lines.push('0', 'ENDSEC');
+  
+  // Blocks section required by AutoCAD for it not to crash
+  lines.push('0', 'SECTION', '2', 'BLOCKS');
   lines.push('0', 'ENDSEC');
   
   // Entities section
   lines.push('0', 'SECTION', '2', 'ENTITIES');
   
-  // Generate 3D walls using 3DFACE entities
-  for (const wall of plan.walls) {
-    const dx = wall.x2 - wall.x1;
-    const dy = wall.y2 - wall.y1;
-    const len = Math.sqrt(dx * dx + dy * dy);
-    if (len < 0.01) continue;
-    
-    // Normal perpendicular to wall
-    const nx = -dy / len * (wall.thickness / 2);
-    const ny = dx / len * (wall.thickness / 2);
-    
-    // 4 corners at base
-    const corners = [
-      { x: wall.x1 + nx, y: wall.y1 + ny },
-      { x: wall.x2 + nx, y: wall.y2 + ny },
-      { x: wall.x2 - nx, y: wall.y2 - ny },
-      { x: wall.x1 - nx, y: wall.y1 - ny },
-    ];
-    
-    // Bottom face
-    add3DFace(lines, 'WALLS_3D',
-      corners[0].x, corners[0].y, 0,
-      corners[1].x, corners[1].y, 0,
-      corners[2].x, corners[2].y, 0,
-      corners[3].x, corners[3].y, 0
-    );
-    
-    // Top face
-    add3DFace(lines, 'WALLS_3D',
-      corners[0].x, corners[0].y, wallHeight,
-      corners[1].x, corners[1].y, wallHeight,
-      corners[2].x, corners[2].y, wallHeight,
-      corners[3].x, corners[3].y, wallHeight
-    );
-    
-    // 4 side faces
-    for (let i = 0; i < 4; i++) {
-      const j = (i + 1) % 4;
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+
+  // Generate 3D walls 
+  for (let f = 0; f < floorsCount; f++) {
+    const zOffset = f * wallHeight;
+
+    for (const wall of plan.walls) {
+      if (wall.x1 < minX) minX = wall.x1;
+      if (wall.y1 < minY) minY = wall.y1;
+      if (wall.x1 > maxX) maxX = wall.x1;
+      if (wall.y1 > maxY) maxY = wall.y1;
+      if (wall.x2 < minX) minX = wall.x2;
+      if (wall.y2 < minY) minY = wall.y2;
+      if (wall.x2 > maxX) maxX = wall.x2;
+      if (wall.y2 > maxY) maxY = wall.y2;
+
+      const dx = wall.x2 - wall.x1;
+      const dy = wall.y2 - wall.y1;
+      const len = Math.sqrt(dx * dx + dy * dy);
+      if (len < 0.01) continue;
+      
+      const nx = -dy / len * (wall.thickness / 2);
+      const ny = dx / len * (wall.thickness / 2);
+      
+      const corners = [
+        { x: wall.x1 + nx, y: wall.y1 + ny },
+        { x: wall.x2 + nx, y: wall.y2 + ny },
+        { x: wall.x2 - nx, y: wall.y2 - ny },
+        { x: wall.x1 - nx, y: wall.y1 - ny },
+      ];
+      
       add3DFace(lines, 'WALLS_3D',
-        corners[i].x, corners[i].y, 0,
-        corners[j].x, corners[j].y, 0,
-        corners[j].x, corners[j].y, wallHeight,
-        corners[i].x, corners[i].y, wallHeight
+        corners[0].x, corners[0].y, zOffset,
+        corners[1].x, corners[1].y, zOffset,
+        corners[2].x, corners[2].y, zOffset,
+        corners[3].x, corners[3].y, zOffset
+      );
+      
+      add3DFace(lines, 'WALLS_3D',
+        corners[0].x, corners[0].y, zOffset + wallHeight,
+        corners[1].x, corners[1].y, zOffset + wallHeight,
+        corners[2].x, corners[2].y, zOffset + wallHeight,
+        corners[3].x, corners[3].y, zOffset + wallHeight
+      );
+      
+      for (let i = 0; i < 4; i++) {
+        const j = (i + 1) % 4;
+        add3DFace(lines, 'WALLS_3D',
+          corners[i].x, corners[i].y, zOffset,
+          corners[j].x, corners[j].y, zOffset,
+          corners[j].x, corners[j].y, zOffset + wallHeight,
+          corners[i].x, corners[i].y, zOffset + wallHeight
+        );
+      }
+    }
+    
+    // Windows and Doors
+    for (const opening of plan.openings) {
+      const layer = opening.type === 'door' ? 'DOORS' : 'WINDOWS';
+      const zBottom = opening.type === 'window' ? (zOffset + 0.9) : zOffset;
+      const zTop = opening.type === 'window' ? (zOffset + 2.1) : (zOffset + 2.1);
+      const hw = opening.width / 2;
+      
+      add3DFace(lines, layer,
+        opening.x - hw, opening.y, zBottom,
+        opening.x + hw, opening.y, zBottom,
+        opening.x + hw, opening.y, zTop,
+        opening.x - hw, opening.y, zTop
       );
     }
   }
-  
-  // Door openings
-  for (const opening of plan.openings) {
-    const layer = opening.type === 'door' ? 'DOORS' : 'WINDOWS';
-    const zBottom = opening.type === 'window' ? 0.9 : 0;
-    const zTop = opening.type === 'window' ? 2.1 : 2.1;
-    const hw = opening.width / 2;
-    
-    // Simple rectangular opening representation
-    add3DFace(lines, layer,
-      opening.x - hw, opening.y, zBottom,
-      opening.x + hw, opening.y, zBottom,
-      opening.x + hw, opening.y, zTop,
-      opening.x - hw, opening.y, zTop
+
+  // Add flat Roof on the top floor
+  if (minX !== Infinity) {
+    const topZ = floorsCount * wallHeight;
+    // Overhang of 0.3 meters for the logical roof
+    const overhang = 0.3;
+    add3DFace(lines, 'ROOF',
+      minX - overhang, minY - overhang, topZ,
+      maxX + overhang, minY - overhang, topZ,
+      maxX + overhang, maxY + overhang, topZ,
+      minX - overhang, maxY + overhang, topZ
     );
   }
   
@@ -136,7 +164,6 @@ function add3DFace(lines: string[], layer: string,
 
 function parseAIResponse(text: string, wallThickness: number): FloorPlan {
   try {
-    // Try to extract JSON from the response
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       const parsed = JSON.parse(jsonMatch[0]);
@@ -165,8 +192,6 @@ function parseAIResponse(text: string, wallThickness: number): FloorPlan {
   } catch (e) {
     console.error('Parse error:', e);
   }
-  
-  // Fallback: generate a simple box
   return generateFallbackPlan(wallThickness);
 }
 
@@ -179,7 +204,6 @@ function generateFallbackPlan(thickness: number): FloorPlan {
       { x1: w, y1: 0, x2: w, y2: h, thickness },
       { x1: w, y1: h, x2: 0, y2: h, thickness },
       { x1: 0, y1: h, x2: 0, y2: 0, thickness },
-      // Internal wall
       { x1: w / 2, y1: 0, x2: w / 2, y2: h * 0.6, thickness },
     ],
     openings: [
@@ -195,7 +219,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { image, wallHeight = 2.8, wallThickness = 0.2 } = await req.json();
+    const { image, wallHeight = 2.8, wallThickness = 0.2, floorsCount = 1 } = await req.json();
 
     if (!image) {
       return new Response(JSON.stringify({ error: 'No image provided' }), {
@@ -208,7 +232,6 @@ Deno.serve(async (req) => {
     let plan: FloorPlan;
 
     if (apiKey) {
-      // Use AI to analyze the floor plan
       const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -244,25 +267,22 @@ All coordinates in meters. Estimate the scale from the image. Return ONLY valid 
       const aiText = data.choices?.[0]?.message?.content || '';
       plan = parseAIResponse(aiText, wallThickness);
     } else {
-      // No API key - use fallback
       plan = generateFallbackPlan(wallThickness);
     }
 
-    // Ensure we never return empty
     if (!plan.walls.length) {
       plan = generateFallbackPlan(wallThickness);
     }
 
-    const dxf = generateDXF(plan, wallHeight);
+    const dxf = generateDXF(plan, wallHeight, floorsCount);
 
     return new Response(JSON.stringify({ dxf, plan: { wallCount: plan.walls.length, openingCount: plan.openings.length } }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (err) {
     console.error('Error:', err);
-    // Fallback: always return something
     const fallback = generateFallbackPlan(0.2);
-    const dxf = generateDXF(fallback, 2.8);
+    const dxf = generateDXF(fallback, 2.8, 1);
     return new Response(JSON.stringify({ dxf, fallback: true }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
