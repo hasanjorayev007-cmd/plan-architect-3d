@@ -38,12 +38,13 @@ export const translations = {
       roof: { title: "Tom yaratish", desc: "Binoning yuqori qoplamasi" },
       stairs: { title: "Zinalar yaratish", desc: "Qavatlar aro bog'liqlik" },
       floor: { title: "Pol yaratish", desc: "Ichki zamin qoplamasi" },
+      wall: { title: "Devor ko'tarish", desc: "Maxsus tuzilma devorlari" },
     },
     modal: {
       createTitle: "yaratish",
       manual: "O'lcham kiritish",
       ai: "AI - Rasm orqali",
-      processing: "Obyekt tayyorlanmoqda...",
+      processing: "AI ma'lumotlarni tahlil qilmoqda...",
       success: "Muvaffaqiyatli yaratildi!",
       close: "Yopish",
       submit: "Yaratish",
@@ -65,6 +66,21 @@ export const translations = {
       stepRise: "Stupenka qadam balandligi (m)",
       stepRun: "Qadam chuqurligi (m)",
       stepCount: "Zinalar soni (dona)",
+      
+      // Additional Wall fields
+      wallType: "Devor shaklini tanlang:",
+      straight: "To'g'ri (Straight)",
+      angled: "Kesik / Qiya (Angled)",
+      curved: "Egri (Curved)",
+      startHeight: "Boshlang'ich balandlik (m)",
+      endHeight: "Tugash balandligi (m)",
+      radius: "Egrilik Radiusi (m)",
+      arcAngle: "Yoy burchagi (°)",
+      
+      // AI action buttons
+      aiResultText: "AI taxminiy o'lchamlarni topdi!",
+      aiEditBtn: "O'lchamlarni tahrirlash",
+      aiDownloadBtn: "3D DXF yuklash"
     }
   },
   en: {
@@ -104,12 +120,13 @@ export const translations = {
       roof: { title: "Build Roof", desc: "Top structure cover" },
       stairs: { title: "Build Stairs", desc: "Inter-floor connection" },
       floor: { title: "Add Floor", desc: "Interior base covering" },
+      wall: { title: "Construct Wall", desc: "Special structure walls" },
     },
     modal: {
       createTitle: "creation",
       manual: "Manual Dimensions",
       ai: "AI - From Image",
-      processing: "Processing object...",
+      processing: "AI analyzing data...",
       success: "Successfully created!",
       close: "Close",
       submit: "Create",
@@ -131,6 +148,21 @@ export const translations = {
       stepRise: "Step Rise (m)",
       stepRun: "Step Run Depth (m)",
       stepCount: "Step Count",
+      
+      // Additional Wall fields
+      wallType: "Select wall type:",
+      straight: "Straight",
+      angled: "Angled / Trimmed",
+      curved: "Curved",
+      startHeight: "Starting Height (m)",
+      endHeight: "Ending Height (m)",
+      radius: "Curve Radius (m)",
+      arcAngle: "Arc Angle (°)",
+      
+      // AI action buttons
+      aiResultText: "AI successfully estimated dimensions!",
+      aiEditBtn: "Edit Dimensions",
+      aiDownloadBtn: "Download 3D DXF"
     }
   },
   ru: {
@@ -170,12 +202,13 @@ export const translations = {
       roof: { title: "Создать Крышу", desc: "Верхнее покрытие" },
       stairs: { title: "Создать Лестницу", desc: "Связь между этажами" },
       floor: { title: "Создать Пол", desc: "Внутреннее покрытие" },
+      wall: { title: "Построить стену", desc: "Специальные стены" },
     },
     modal: {
       createTitle: "(генерация)",
       manual: "Ввод размеров",
       ai: "ИИ - По изображению",
-      processing: "Объект обрабатывается...",
+      processing: "ИИ анализирует данные...",
       success: "Успешно создано!",
       close: "Закрыть",
       submit: "Создать",
@@ -197,6 +230,21 @@ export const translations = {
       stepRise: "Высота ступени (м)",
       stepRun: "Глубина ступени (м)",
       stepCount: "Количество ступеней",
+      
+      // Additional Wall fields
+      wallType: "Тип стены:",
+      straight: "Прямая",
+      angled: "Скошенная (Угловая)",
+      curved: "Изогнутая",
+      startHeight: "Начальная высота (м)",
+      endHeight: "Конечная высота (м)",
+      radius: "Радиус изгиба (м)",
+      arcAngle: "Угол дуги (°)",
+      
+      // AI action buttons
+      aiResultText: "Датчики ИИ определили размеры!",
+      aiEditBtn: "Редактировать размеры",
+      aiDownloadBtn: "Скачать 3D DXF"
     }
   },
 } as const;
