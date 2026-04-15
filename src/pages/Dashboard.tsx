@@ -3,254 +3,78 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { Button } from '@/components/ui/button';
+import { ElementBuilderModal, BuilderModule } from '@/components/ElementBuilderModal';
 import { supabase } from '@/integrations/supabase/client';
-
-type Stage = 'idle' | 'uploading' | 'detecting' | 'generating' | 'exporting' | 'done' | 'error';
 
 const Dashboard = () => {
   const { logout } = useAuth();
   const { t } = useLanguage();
-  const fileRef = useRef<HTMLInputElement>(null);
-  const [stage, setStage] = useState<Stage>('idle');
-  const [preview, setPreview] = useState<string | null>(null);
-  const [dxfBlob, setDxfBlob] = useState<Blob | null>(null);
-  const [dragOver, setDragOver] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
-  const [wallHeight, setWallHeight] = useState(2.8);
-  const [wallThickness, setWallThickness] = useState(0.2);
-  const [floorsCount, setFloorsCount] = useState(1);
+  
+  const [activeModule, setActiveModule] = useState<BuilderModule | null>(null);
 
-  const processFile = useCallback(async (file: File) => {
-    if (!file.type.match(/^image\/(jpeg|png)$/)) return;
-
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const base64 = e.target?.result as string;
-      setPreview(base64);
-      setStage('uploading');
-      setErrorMsg('');
-      setDxfBlob(null);
-
-      try {
-        await new Promise(r => setTimeout(r, 300));
-        setStage('detecting');
-
-        const { data, error } = await supabase.functions.invoke('generate-3d', {
-          body: {
-            image: base64,
-            wallHeight,
-            wallThickness,
-            floorsCount,
-          },
-        });
-
-        if (error) throw error;
-
-        setStage('generating');
-        await new Promise(r => setTimeout(r, 500));
-        setStage('exporting');
-        await new Promise(r => setTimeout(r, 300));
-
-        const dxfContent = data.dxf;
-        const blob = new Blob([dxfContent], { type: 'application/dxf' });
-        setDxfBlob(blob);
-        setStage('done');
-      } catch (err: any) {
-        console.error(err);
-        setErrorMsg(err.message || t.dashboard.error);
-        setStage('error');
-      }
-    };
-    reader.readAsDataURL(file);
-  }, [wallHeight, wallThickness, floorsCount, t]);
-
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOver(false);
-    const file = e.dataTransfer.files[0];
-    if (file) processFile(file);
-  }, [processFile]);
-
-  const handleDownload = () => {
-    if (!dxfBlob) return;
-    const url = URL.createObjectURL(dxfBlob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'floorplan_3d.dxf';
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const reset = () => {
-    setStage('idle');
-    setPreview(null);
-    setDxfBlob(null);
-    setErrorMsg('');
-  };
-
-  const stageLabels: Record<string, string> = {
-    uploading: t.dashboard.processing,
-    detecting: t.dashboard.detecting,
-    generating: t.dashboard.generating,
-    exporting: t.dashboard.exporting,
-  };
-
-  const isProcessing = ['uploading', 'detecting', 'generating', 'exporting'].includes(stage);
+  const modules: { id: BuilderModule; title: string; desc: string; icon: string }[] = [
+    { id: 'house', title: 'Uy yaratish', desc: "Butun boshli quti devorlarni ko'tarish", icon: "M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" },
+    { id: 'foundation', title: 'Stayashka (Beton)', desc: "Uyning asos qismini yaratish", icon: "M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2z" },
+    { id: 'door', title: 'Eshik yaratish', desc: "O'lchamli yoki avtomat eshiklar", icon: "M14 18V6a2 2 0 0 0-2-2H4v16h16V8h-6" },
+    { id: 'window', title: 'Oyna yaratish', desc: "Rom va deraza qismlari", icon: "M3 3h18v18H3z M12 3v18 M3 12h18" },
+    { id: 'roof', title: 'Tom yaratish', desc: "Binoning yuqori yopish qismi", icon: "M2 10l10-8 10 8v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z" },
+    { id: 'stairs', title: 'Zinalar yaratish', desc: "Qadamli zinalar loyihalash", icon: "M14 14v6h4v-10h-4M6 20h4v-6H6M10 14h4V8h-4" },
+    { id: 'floor', title: 'Pol yaratish', desc: "Xonalar maydoni uchun pol", icon: "M2 16h20 M2 20h20 M5 12l7 5 l7-5" },
+  ];
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3 border-b border-border">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="hsl(var(--primary))" strokeWidth="1.5">
+      <header className="flex items-center justify-between px-6 py-4 border-b border-border bg-card/50 backdrop-blur-md sticky top-0 z-10">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shadow-inner shadow-primary/10">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="hsl(var(--primary))" strokeWidth="1.5">
               <path d="M3 21h18M3 7v14M21 7v14M6 7V3h12v4"/>
             </svg>
           </div>
-          <span className="text-sm font-semibold text-foreground">FloorPlan3D</span>
+          <div>
+            <h1 className="text-base font-bold text-foreground">FloorPlan3D</h1>
+            <p className="text-xs text-muted-foreground hidden sm:block">Advanced Architecture Builder</p>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
           <LanguageSwitcher />
-          <Button variant="ghost" size="sm" onClick={logout} className="text-muted-foreground text-xs">
+          <Button variant="outline" size="sm" onClick={logout} className="text-muted-foreground text-xs hover:text-destructive transition-colors">
             {t.dashboard.logout}
           </Button>
         </div>
       </header>
 
-      {/* Main */}
-      <main className="flex-1 flex items-center justify-center p-4">
-        <div className="w-full max-w-lg space-y-6">
-          {stage === 'idle' && !preview && (
-            <>
-              {/* Parameters */}
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-xs text-muted-foreground mb-1">{t.dashboard.wallHeight}</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={wallHeight}
-                    onChange={e => setWallHeight(Number(e.target.value))}
-                    className="w-full bg-secondary border border-border rounded-md px-3 py-2 text-sm text-foreground font-mono"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-muted-foreground mb-1">{t.dashboard.wallThickness}</label>
-                  <input
-                    type="number"
-                    step="0.05"
-                    value={wallThickness}
-                    onChange={e => setWallThickness(Number(e.target.value))}
-                    className="w-full bg-secondary border border-border rounded-md px-3 py-2 text-sm text-foreground font-mono"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-muted-foreground mb-1">Qavatlar soni</label>
-                  <input
-                    type="number"
-                    step="1"
-                    min="1"
-                    value={floorsCount}
-                    onChange={e => setFloorsCount(Number(e.target.value))}
-                    className="w-full bg-secondary border border-border rounded-md px-3 py-2 text-sm text-foreground font-mono"
-                  />
-                </div>
-              </div>
+      {/* Main Grid */}
+      <main className="flex-1 p-6 md:p-8 max-w-7xl mx-auto w-full">
+        <div className="mb-8 max-w-2xl">
+          <h2 className="text-3xl font-bold tracking-tight mb-2">Loyiha bo'limlari</h2>
+          <p className="text-muted-foreground">O'zingiz yaratmoqchi bo'lgan arxitektura qismini tanlang. O'lchamlarni qo'lda kiritishingiz yoki AI uchun rasm yuklashingiz mumkin.</p>
+        </div>
 
-              {/* Upload Area */}
-              <div
-                onDragOver={e => { e.preventDefault(); setDragOver(true); }}
-                onDragLeave={() => setDragOver(false)}
-                onDrop={handleDrop}
-                onClick={() => fileRef.current?.click()}
-                className={`relative border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all ${
-                  dragOver
-                    ? 'border-primary bg-primary/5 glow-primary'
-                    : 'border-border hover:border-muted-foreground'
-                }`}
-              >
-                <input
-                  ref={fileRef}
-                  type="file"
-                  accept="image/jpeg,image/png"
-                  className="hidden"
-                  onChange={e => {
-                    const f = e.target.files?.[0];
-                    if (f) processFile(f);
-                  }}
-                />
-                <div className="flex flex-col items-center gap-3">
-                  <div className="w-14 h-14 rounded-xl bg-secondary flex items-center justify-center">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-muted-foreground">
-                      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{t.dashboard.dragDrop}</p>
-                    <p className="text-xs text-muted-foreground mt-1">{t.dashboard.orClick}</p>
-                  </div>
-                  <p className="text-xs text-muted-foreground">{t.dashboard.uploadHint}</p>
-                </div>
-              </div>
-            </>
-          )}
-
-          {/* Processing State */}
-          {isProcessing && (
-            <div className="text-center space-y-6">
-              {preview && (
-                <div className="relative rounded-xl overflow-hidden border border-border">
-                  <img src={preview} alt="Floor plan" className="w-full opacity-60" />
-                  <div className="absolute inset-0 bg-background/60 flex items-center justify-center">
-                    <div className="h-1 w-full absolute top-0 overflow-hidden">
-                      <div className="h-full w-1/3 bg-primary animate-scan-line" />
-                    </div>
-                  </div>
-                </div>
-              )}
-              <div className="flex items-center justify-center gap-3">
-                <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                <span className="text-sm text-muted-foreground">{stageLabels[stage]}</span>
-              </div>
-            </div>
-          )}
-
-          {/* Done */}
-          {stage === 'done' && (
-            <div className="text-center space-y-6">
-              {preview && (
-                <div className="rounded-xl overflow-hidden border border-border">
-                  <img src={preview} alt="Floor plan" className="w-full" />
-                </div>
-              )}
-              <div className="flex items-center justify-center gap-2 text-success">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M20 6L9 17l-5-5"/>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          {modules.map(mod => (
+            <div 
+              key={mod.id}
+              onClick={() => setActiveModule(mod.id)}
+              className="group relative bg-card border border-border rounded-2xl p-6 cursor-pointer hover:border-primary/50 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl -mr-10 -mt-10 group-hover:bg-primary/10 transition-colors" />
+              
+              <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-foreground">
+                  <path d={mod.icon} strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
-                <span className="text-sm font-medium">{t.dashboard.success}</span>
               </div>
-              <div className="flex gap-3">
-                <Button onClick={handleDownload} className="flex-1 glow-primary-strong">
-                  {t.dashboard.download}
-                </Button>
-                <Button variant="outline" onClick={reset}>
-                  {t.dashboard.newProject}
-                </Button>
-              </div>
+              
+              <h3 className="text-lg font-semibold mb-1 group-hover:text-primary transition-colors">{mod.title}</h3>
+              <p className="text-sm text-muted-foreground">{mod.desc}</p>
             </div>
-          )}
-
-          {/* Error */}
-          {stage === 'error' && (
-            <div className="text-center space-y-4">
-              <p className="text-sm text-destructive">{errorMsg || t.dashboard.error}</p>
-              <Button variant="outline" onClick={reset}>
-                {t.dashboard.newProject}
-              </Button>
-            </div>
-          )}
+          ))}
         </div>
       </main>
+
+      <ElementBuilderModal module={activeModule} onClose={() => setActiveModule(null)} />
     </div>
   );
 };
