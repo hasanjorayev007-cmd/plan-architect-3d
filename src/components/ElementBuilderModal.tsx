@@ -30,20 +30,20 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
   const [partsCount, setPartsCount] = useState<'1' | '2'>('1');
   const [hasGap, setHasGap] = useState<'no' | 'yes'>('no');
   
-  // Path Builder State
+  // Path Builder State - Updated to Centimeters
   const [pathSteps, setPathSteps] = useState<PathStep[]>([
-    { id: '1', type: 'line', val1: '7.0', val2: '', val3: '' }
+    { id: '1', type: 'line', val1: '700', val2: '', val3: '' }
   ]);
   
   const [params, setParams] = useState<Record<string, string>>({
-    length: '10.0', width: '5.0', height: '3.0',
-    thickness: '0.2', wallThickness: '0.3', depth: '0.5',
-    frameDepth: '0.1', sillHeight: '0.9',
-    pitch: '30', overhang: '0.5',
-    stepWidth: '1.2', stepRise: '0.15', stepRun: '0.3', stepCount: '10',
-    startHeight: '3.0', endHeight: '4.5', radius: '5.0', arcAngle: '180',
-    length1: '6.0', length2: '8.0',
-    gapStart: '2.0', gapWidth: '1.0', gapHeight: '2.1'
+    length: '1000', width: '500', height: '300',
+    thickness: '20', wallThickness: '30', depth: '50',
+    frameDepth: '10', sillHeight: '90',
+    pitch: '30', overhang: '50',
+    stepWidth: '120', stepRise: '15', stepRun: '30', stepCount: '10',
+    startHeight: '300', endHeight: '450', radius: '500', arcAngle: '180',
+    length1: '600', length2: '800',
+    gapStart: '200', gapWidth: '100', gapHeight: '210'
   });
 
   const handleChange = (key: string, val: string) => setParams(prev => ({ ...prev, [key]: val }));
@@ -52,7 +52,7 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
     setPathSteps(prev => prev.map(s => s.id === id ? { ...s, [key]: val } : s));
   };
   const addPathStep = (type: PathStepType) => {
-    setPathSteps(prev => [...prev, { id: Math.random().toString(), type, val1: type.startsWith('turn') ? '90' : '2', val2: type==='window' ? '1.5' : '2.1', val3: '0.9' }]);
+    setPathSteps(prev => [...prev, { id: Math.random().toString(), type, val1: type.startsWith('turn') ? '90' : '200', val2: type==='window' ? '150' : '210', val3: '90' }]);
   };
   const removePathStep = (id: string) => {
     setPathSteps(prev => prev.filter(s => s.id !== id));
@@ -63,7 +63,7 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
   const performAIAnalysis = () => {
     setStage('processing');
     setTimeout(() => {
-      setParams(prev => ({ ...prev, length: '8.5', width: '4.2', height: '2.8' }));
+      setParams(prev => ({ ...prev, length: '850', width: '420', height: '280' }));
       setStage('aiResults');
     }, 2500);
   };
@@ -88,32 +88,28 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
         addLine(px+wx, py+wy, pz, px+wx, py+wy, pz+wz); addLine(px, py+wy, pz, px, py+wy, pz+wz);
       };
 
-      // Vektorli burilgan devor chizish funksiyasi (PATH BUILDER UCHUN)
       const drawRotatedBox = (sx: number, sy: number, sz: number, angleDeg: number, len: number, thick: number, h: number) => {
         if (len <= 0 || h <= 0) return;
         const rad = angleDeg * Math.PI / 180;
         const dx = Math.cos(rad), dy = Math.sin(rad);
-        const nx = -Math.sin(rad), ny = Math.cos(rad); // orthogonal for thickness
+        const nx = -Math.sin(rad), ny = Math.cos(rad); 
         
         const p1 = [sx, sy];
         const p2 = [sx + len*dx, sy + len*dy];
         const p3 = [p2[0] + thick*nx, p2[1] + thick*ny];
         const p4 = [p1[0] + thick*nx, p1[1] + thick*ny];
 
-        // Bottom base lines
         addLine(p1[0], p1[1], sz, p2[0], p2[1], sz); addLine(p2[0], p2[1], sz, p3[0], p3[1], sz);
         addLine(p3[0], p3[1], sz, p4[0], p4[1], sz); addLine(p4[0], p4[1], sz, p1[0], p1[1], sz);
-        // Top base lines
         addLine(p1[0], p1[1], sz+h, p2[0], p2[1], sz+h); addLine(p2[0], p2[1], sz+h, p3[0], p3[1], sz+h);
         addLine(p3[0], p3[1], sz+h, p4[0], p4[1], sz+h); addLine(p4[0], p4[1], sz+h, p1[0], p1[1], sz+h);
-        // Verticals
         addLine(p1[0], p1[1], sz, p1[0], p1[1], sz+h); addLine(p2[0], p2[1], sz, p2[0], p2[1], sz+h);
         addLine(p3[0], p3[1], sz, p3[0], p3[1], sz+h); addLine(p4[0], p4[1], sz, p4[0], p4[1], sz+h);
       };
 
       const drawWallY = (py: number, len: number, w: number, h: number) => {
         if (hasGap === 'yes') {
-          const gS = p('gapStart', 2), gW = p('gapWidth', 1), gH = p('gapHeight', 2.1);
+          const gS = p('gapStart', 200), gW = p('gapWidth', 100), gH = p('gapHeight', 210);
           drawBox(0, py, 0, w, gS, h);
           drawBox(0, py + gS + gW, 0, w, len - gS - gW, h);
           drawBox(0, py + gS, gH, w, gW, h - gH);
@@ -122,7 +118,7 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
 
       const drawWallX = (px: number, len: number, w: number, h: number) => {
         if (hasGap === 'yes') {
-          const gS = p('gapStart', 2), gW = p('gapWidth', 1), gH = p('gapHeight', 2.1);
+          const gS = p('gapStart', 200), gW = p('gapWidth', 100), gH = p('gapHeight', 210);
           drawBox(px, 0, 0, gS, w, h);
           drawBox(px + gS + gW, 0, 0, len - gS - gW, w, h);
           drawBox(px + gS, 0, gH, gW, w, h - gH);
@@ -130,8 +126,8 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
       };
 
       if (module === 'path') {
-        const wt = p('wallThickness', 0.3), h = p('height', 3.0);
-        let currX = 0, currY = 0, currAngle = 0; // turtle state
+        const wt = p('wallThickness', 30), h = p('height', 300);
+        let currX = 0, currY = 0, currAngle = 0; 
 
         pathSteps.forEach(step => {
            if (step.type === 'line') {
@@ -142,19 +138,16 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
            } 
            else if (step.type === 'door') {
              const dist = parseFloat(step.val1) || 0;
-             const dHeight = 2.1; // Universal o'zgarmas default linter
-             // Lintel qismi (Eshik osmoni)
+             const dHeight = 210; 
              drawRotatedBox(currX, currY, dHeight, currAngle, dist, wt, h - dHeight);
              currX += dist * Math.cos(currAngle * Math.PI / 180);
              currY += dist * Math.sin(currAngle * Math.PI / 180);
            }
            else if (step.type === 'window') {
              const dist = parseFloat(step.val1) || 0;
-             const winH = parseFloat(step.val2) || 1.5;
-             const sillH = parseFloat(step.val3) || 0.9;
-             // Deraza tagi (sill)
+             const winH = parseFloat(step.val2) || 150;
+             const sillH = parseFloat(step.val3) || 90;
              drawRotatedBox(currX, currY, 0, currAngle, dist, wt, sillH);
-             // Deraza tepasi (lintel)
              drawRotatedBox(currX, currY, sillH + winH, currAngle, dist, wt, h - (sillH + winH));
              currX += dist * Math.cos(currAngle * Math.PI / 180);
              currY += dist * Math.sin(currAngle * Math.PI / 180);
@@ -165,14 +158,13 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
            }
            else if (step.type === 'turn_right') {
              const angleDelta = parseFloat(step.val1) || 0;
-             currAngle -= angleDelta; // o'ngga burilganda matematik koordinata teskari yuradi
+             currAngle -= angleDelta; 
            }
            else if (step.type === 'arc') {
-             const radius = parseFloat(step.val1) || 2;
+             const radius = parseFloat(step.val1) || 200;
              const sweepAngle = parseFloat(step.val2) || 90;
              const segments = 12;
              const dTh = sweepAngle / segments;
-             // arc length L = theta_rad * R
              const arcLen = (Math.abs(sweepAngle) * Math.PI / 180) * radius;
              const dl = arcLen / segments;
              
@@ -186,29 +178,29 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
         });
       } 
       else if (module === 'foundation') {
-        drawBox(0, 0, -p('depth', 0.5), p('length', 10), p('width', 5), p('depth', 0.5));
+        drawBox(0, 0, -p('depth', 50), p('length', 1000), p('width', 500), p('depth', 50));
       } else if (module === 'floor') {
-        drawBox(0, 0, 0, p('length', 10), p('width', 5), p('thickness', 0.2));
+        drawBox(0, 0, 0, p('length', 1000), p('width', 500), p('thickness', 20));
       } else if (module === 'house') {
-        const l = p('length', 10), w = p('width', 5), h = p('height', 3), wt = p('wallThickness', 0.3);
+        const l = p('length', 1000), w = p('width', 500), h = p('height', 300), wt = p('wallThickness', 30);
         if (hasGap === 'yes') {
-           const gS = p('gapStart', 2), gW = p('gapWidth', 1), gH = p('gapHeight', 2.1);
+           const gS = p('gapStart', 200), gW = p('gapWidth', 100), gH = p('gapHeight', 210);
            drawBox(0, 0, 0, wt, w, h); drawBox(l - wt, 0, 0, wt, w, h); drawBox(wt, w - wt, 0, l - 2*wt, wt, h); 
            drawBox(wt, 0, 0, gS, wt, h); drawBox(wt + gS + gW, 0, 0, l - 2*wt - (gS + gW), wt, h); drawBox(wt + gS, 0, gH, gW, wt, h - gH);
         } else {
           drawBox(0, 0, 0, wt, w, h); drawBox(l - wt, 0, 0, wt, w, h); drawBox(wt, 0, 0, l - 2*wt, wt, h); drawBox(wt, w - wt, 0, l - 2*wt, wt, h);
         }
       } else if (module === 'door') {
-        const w = p('width', 1), h = p('height', 2), fd = p('frameDepth', 0.1), pt = 0.05;
+        const w = p('width', 100), h = p('height', 200), fd = p('frameDepth', 10), pt = 5;
         drawBox(0, 0, 0, pt, fd, h); drawBox(w - pt, 0, 0, pt, fd, h);
-        drawBox(pt, 0, h - pt, w - 2*pt, fd, pt); drawBox(pt, fd/2 - 0.02, 0, w - 2*pt, 0.04, h - pt);
+        drawBox(pt, 0, h - pt, w - 2*pt, fd, pt); drawBox(pt, fd/2 - 2, 0, w - 2*pt, 4, h - pt);
       } else if (module === 'window') {
-        const w = p('width', 1.5), h = p('height', 1.5), sh = p('sillHeight', 0.9), pt = 0.05, fd = 0.1;
+        const w = p('width', 150), h = p('height', 150), sh = p('sillHeight', 90), pt = 5, fd = 10;
         drawBox(0, 0, sh, pt, fd, h); drawBox(w - pt, 0, sh, pt, fd, h);
         drawBox(pt, 0, sh, w - 2*pt, fd, pt); drawBox(pt, 0, sh + h - pt, w - 2*pt, fd, pt);
-        drawBox(w/2 - 0.02, 0.03, sh + pt, 0.04, 0.04, h - 2*pt); drawBox(pt, 0.03, sh + h/2 - 0.02, w - 2*pt, 0.04, 0.04);
+        drawBox(w/2 - 2, 3, sh + pt, 4, 4, h - 2*pt); drawBox(pt, 3, sh + h/2 - 2, w - 2*pt, 4, 4);
       } else if (module === 'roof') {
-        const l = p('length', 10), w = p('width', 5), pitch = p('pitch', 30), oh = p('overhang', 0.5);
+        const l = p('length', 1000), w = p('width', 500), pitch = p('pitch', 30), oh = p('overhang', 50);
         const rH = (w/2 + oh) * Math.tan(pitch * Math.PI / 180);
         addLine(-oh, -oh, 0, l+oh, -oh, 0); addLine(l+oh, -oh, 0, l+oh, w+oh, 0);
         addLine(l+oh, w+oh, 0, -oh, w+oh, 0); addLine(-oh, w+oh, 0, -oh, -oh, 0);
@@ -216,23 +208,23 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
         addLine(-oh, -oh, 0, -oh, w/2, rH); addLine(-oh, w+oh, 0, -oh, w/2, rH);
         addLine(l+oh, -oh, 0, l+oh, w/2, rH); addLine(l+oh, w+oh, 0, l+oh, w/2, rH);
       } else if (module === 'stairs') {
-        const w = p('stepWidth', 1.2), sR = p('stepRise', 0.15), sRun = p('stepRun', 0.3), count = parseInt(params.stepCount) || 10;
+        const w = p('stepWidth', 120), sR = p('stepRise', 15), sRun = p('stepRun', 30), count = parseInt(params.stepCount) || 10;
         for (let i = 0; i < count; i++) drawBox(i * sRun, 0, 0, sRun, w, i * sR + sR);
       } else if (module === 'wall') {
-        const h = p('height', 3), wt = p('wallThickness', 0.3);
+        const h = p('height', 300), wt = p('wallThickness', 30);
         if (wallType === 'straight') {
-           if (partsCount === '1') drawWallX(0, p('length', 5), wt, h);
+           if (partsCount === '1') drawWallX(0, p('length', 500), wt, h);
            else {
-             const L1 = p('length1', 5), L2 = p('length2', 4);
+             const L1 = p('length1', 500), L2 = p('length2', 400);
              drawWallX(0, L1, wt, h); drawWallY(wt, L2 - wt, wt, h); 
            }
         } else if (wallType === 'angled') {
-          const l = p('length', 5), sh = p('startHeight', 2), eh = p('endHeight', 4);
+          const l = p('length', 500), sh = p('startHeight', 200), eh = p('endHeight', 400);
           addLine(0,0,0, l,0,0); addLine(l,0,0, l,wt,0); addLine(l,wt,0, 0,wt,0); addLine(0,wt,0, 0,0,0);
           addLine(0,0,sh, l,0,eh); addLine(l,0,eh, l,wt,eh); addLine(l,wt,eh, 0,wt,sh); addLine(0,wt,sh, 0,0,sh);
           addLine(0,0,0, 0,0,sh); addLine(l,0,0, l,0,eh); addLine(l,wt,0, l,wt,eh); addLine(0,wt,0, 0,wt,sh);
         } else if (wallType === 'curved') {
-          const R = p('radius', 5), angle = p('arcAngle', 90), segments = 12;
+          const R = p('radius', 500), angle = p('arcAngle', 90), segments = 12;
           const innerR = R - (wt/2), outerR = R + (wt/2);
           for (let i = 0; i < segments; i++) {
             const sA = (i * angle / segments) * Math.PI / 180, eA = ((i+1) * angle / segments) * Math.PI / 180;
@@ -274,11 +266,11 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
         <div className="grid grid-cols-2 gap-4 pb-4 border-b border-border">
           <div className="space-y-2">
             <label className="text-xs font-medium text-muted-foreground">{t.modal.height}</label>
-            <input type="number" step="0.01" value={params.height} onChange={e => handleChange('height', e.target.value)} className="w-full bg-secondary border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary transition-all" />
+            <input type="number" step="1" value={params.height} onChange={e => handleChange('height', e.target.value)} className="w-full bg-secondary border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary transition-all" />
           </div>
           <div className="space-y-2">
             <label className="text-xs font-medium text-muted-foreground">{t.modal.wallThickness}</label>
-            <input type="number" step="0.01" value={params.wallThickness} onChange={e => handleChange('wallThickness', e.target.value)} className="w-full bg-secondary border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary transition-all" />
+            <input type="number" step="1" value={params.wallThickness} onChange={e => handleChange('wallThickness', e.target.value)} className="w-full bg-secondary border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary transition-all" />
           </div>
         </div>
 
@@ -298,25 +290,25 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
                  
                  <div className="flex gap-3">
                     {step.type === 'line' && (
-                      <input type="number" value={step.val1} onChange={e => updatePathStep(step.id, 'val1', e.target.value)} placeholder={t.modal.length} className="w-full text-xs p-2 rounded-md bg-background border border-border" />
+                      <input type="number" step="1" value={step.val1} onChange={e => updatePathStep(step.id, 'val1', e.target.value)} placeholder={t.modal.length} className="w-full text-xs p-2 rounded-md bg-background border border-border" />
                     )}
                     {step.type === 'door' && (
-                      <input type="number" value={step.val1} onChange={e => updatePathStep(step.id, 'val1', e.target.value)} placeholder="Tashlab o'tish masofasi (Eni)" className="w-full text-xs p-2 rounded-md bg-background border border-border" title="Qancha masofa tashlab o'tish (m)" />
+                      <input type="number" step="1" value={step.val1} onChange={e => updatePathStep(step.id, 'val1', e.target.value)} placeholder="Tashlab o'tish masofasi (cm)" className="w-full text-xs p-2 rounded-md bg-background border border-border" title="Qancha masofa tashlab o'tish (cm)" />
                     )}
                     {step.type === 'window' && (
                       <>
-                        <input type="number" value={step.val1} onChange={e => updatePathStep(step.id, 'val1', e.target.value)} placeholder={(t.modal as any).windowWidth || 'Eni'} className="w-full text-xs p-2 rounded-md bg-background border border-border" title="Eni" />
-                        <input type="number" value={step.val2} onChange={e => updatePathStep(step.id, 'val2', e.target.value)} placeholder={(t.modal as any).windowHeight || 'Bal.'} className="w-full text-xs p-2 rounded-md bg-background border border-border" title="Bal." />
-                        <input type="number" value={step.val3} onChange={e => updatePathStep(step.id, 'val3', e.target.value)} placeholder={(t.modal as any).sillHeight || 'Yerdan bal.'} className="w-full text-xs p-2 rounded-md bg-background border border-border" title="Yerdan bal." />
+                        <input type="number" step="1" value={step.val1} onChange={e => updatePathStep(step.id, 'val1', e.target.value)} placeholder={(t.modal as any).windowWidth || 'Eni'} className="w-full text-xs p-2 rounded-md bg-background border border-border" title="Eni" />
+                        <input type="number" step="1" value={step.val2} onChange={e => updatePathStep(step.id, 'val2', e.target.value)} placeholder={(t.modal as any).windowHeight || 'Bal.'} className="w-full text-xs p-2 rounded-md bg-background border border-border" title="Bal." />
+                        <input type="number" step="1" value={step.val3} onChange={e => updatePathStep(step.id, 'val3', e.target.value)} placeholder={(t.modal as any).sillHeight || 'Yerdan bal.'} className="w-full text-xs p-2 rounded-md bg-background border border-border" title="Yerdan bal." />
                       </>
                     )}
                     {(step.type === 'turn_left' || step.type === 'turn_right') && (
-                      <input type="number" value={step.val1} onChange={e => updatePathStep(step.id, 'val1', e.target.value)} placeholder={t.modal.turnAngle} className="w-full text-xs p-2 rounded-md bg-background border border-border" />
+                      <input type="number" step="1" value={step.val1} onChange={e => updatePathStep(step.id, 'val1', e.target.value)} placeholder={t.modal.turnAngle} className="w-full text-xs p-2 rounded-md bg-background border border-border" />
                     )}
                     {step.type === 'arc' && (
                       <>
-                        <input type="number" value={step.val1} onChange={e => updatePathStep(step.id, 'val1', e.target.value)} placeholder={t.modal.radius} className="w-full text-xs p-2 rounded-md bg-background border border-border" />
-                        <input type="number" value={step.val2} onChange={e => updatePathStep(step.id, 'val2', e.target.value)} placeholder={t.modal.arcAngle} className="w-full text-xs p-2 rounded-md bg-background border border-border" />
+                        <input type="number" step="1" value={step.val1} onChange={e => updatePathStep(step.id, 'val1', e.target.value)} placeholder={t.modal.radius} className="w-full text-xs p-2 rounded-md bg-background border border-border" />
+                        <input type="number" step="1" value={step.val2} onChange={e => updatePathStep(step.id, 'val2', e.target.value)} placeholder={t.modal.arcAngle} className="w-full text-xs p-2 rounded-md bg-background border border-border" />
                       </>
                     )}
                  </div>
@@ -411,7 +403,7 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
               <label className="text-xs font-medium text-muted-foreground">
                 {(t.modal as unknown as Record<string, string>)[fieldKey] || fieldKey}
               </label>
-              <input type="number" step="0.01" value={params[fieldKey] || ''} onChange={e => handleChange(fieldKey, e.target.value)} className="w-full bg-secondary border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary transition-all" />
+              <input type="number" step="1" value={params[fieldKey] || ''} onChange={e => handleChange(fieldKey, e.target.value)} className="w-full bg-secondary border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary transition-all" />
             </div>
           ))}
         </div>
