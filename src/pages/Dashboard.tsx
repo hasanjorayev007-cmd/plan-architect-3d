@@ -14,6 +14,7 @@ const Dashboard = () => {
 
   const modules: { id: BuilderModule; title: string; desc: string; icon: string }[] = [
     { id: 'house', title: t.modules.house.title, desc: t.modules.house.desc, icon: "M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" },
+    { id: 'path', title: t.modules.path.title, desc: t.modules.path.desc, icon: "M21 3L15 3L15 9M9 21L3 21L3 15M15 3L3 15M21 9L9 21" },
     { id: 'wall', title: t.modules.wall.title, desc: t.modules.wall.desc, icon: "M4 6h16M4 12h16M4 18h16M8 6v6M16 12v6M12 18v6" },
     { id: 'foundation', title: t.modules.foundation.title, desc: t.modules.foundation.desc, icon: "M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2z" },
     { id: 'door', title: t.modules.door.title, desc: t.modules.door.desc, icon: "M14 18V6a2 2 0 0 0-2-2H4v16h16V8h-6" },
@@ -58,12 +59,12 @@ const Dashboard = () => {
             <div 
               key={mod.id}
               onClick={() => setActiveModule(mod.id)}
-              className="group relative bg-card border border-border rounded-2xl p-6 cursor-pointer hover:border-primary/50 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden"
+              className={`group relative bg-card border ${mod.id === 'path' ? 'border-primary/50' : 'border-border'} rounded-2xl p-6 cursor-pointer hover:border-primary/50 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden`}
             >
               <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl -mr-10 -mt-10 group-hover:bg-primary/10 transition-colors" />
               
-              <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-foreground">
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 ${mod.id === 'path' ? 'bg-primary/10 text-primary' : 'bg-secondary text-foreground'}`}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <path d={mod.icon} strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </div>

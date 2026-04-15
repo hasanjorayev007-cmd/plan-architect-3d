@@ -39,6 +39,7 @@ export const translations = {
       stairs: { title: "Zinalar yaratish", desc: "Qavatlar aro bog'liqlik" },
       floor: { title: "Pol yaratish", desc: "Ichki zamin qoplamasi" },
       wall: { title: "Devor ko'tarish", desc: "Maxsus tuzilma devorlari" },
+      path: { title: "Uzluksiz Marshrut", desc: "Ketma-ket chizma eksperti" },
     },
     modal: {
       createTitle: "yaratish",
@@ -77,7 +78,6 @@ export const translations = {
       radius: "Egrilik Radiusi (m)",
       arcAngle: "Yoy burchagi (°)",
       
-      // L-shape and Gaps
       partsCount: "Qismlar soni:",
       part1: "1-Tomon (Yakka)",
       part2: "2-Tomon (L-shakl)",
@@ -88,9 +88,18 @@ export const translations = {
       gapYes: "Bor (Eshik/Oyna)",
       gapStart: "Uzilish boshi (m)",
       gapWidth: "Uzilish eni (m)",
-      gapHeight: "Uzilish balandligi (m)",
-
-      // AI buttons
+      gapHeight: "Eshik/Oyna asosi balandligi (m)",
+      
+      // Path Builder
+      addStepBtn: "Yangi Qadam Qo'shish +",
+      stepTypeLine: "Devor (To'g'riga yozish)",
+      stepTypeTurn: "Burchak (Burilish)",
+      stepTypeDoor: "Eshik O'rni (Uzish)",
+      stepTypeWindow: "Deraza O'rni (Uzish)",
+      stepTypeArc: "Yoy (Egri devor)",
+      turnAngle: "Burilish gradusi (°)",
+      windowHeight: "Derazaning o'z balandligi (m)",
+      
       aiResultText: "AI taxminiy o'lchamlarni topdi!",
       aiEditBtn: "O'lchamlarni tahrirlash",
       aiDownloadBtn: "3D DXF yuklash"
@@ -134,6 +143,7 @@ export const translations = {
       stairs: { title: "Build Stairs", desc: "Inter-floor connection" },
       floor: { title: "Add Floor", desc: "Interior base covering" },
       wall: { title: "Construct Wall", desc: "Special structure walls" },
+      path: { title: "Continuous Path", desc: "Step-by-step drawing expert" },
     },
     modal: {
       createTitle: "creation",
@@ -146,7 +156,6 @@ export const translations = {
       dropMain: "Click or drop image here",
       dropSub: "AI automatically detects dimensions from image",
       
-      // Fields
       length: "Length (m)",
       width: "Width (m)",
       height: "Height (m)",
@@ -162,7 +171,6 @@ export const translations = {
       stepRun: "Step Run Depth (m)",
       stepCount: "Step Count",
       
-      // Wall fields extensions
       wallType: "Select wall type:",
       straight: "Straight",
       angled: "Angled / Trimmed",
@@ -182,8 +190,17 @@ export const translations = {
       gapYes: "Yes (Door/Window)",
       gapStart: "Gap Start Point (m)",
       gapWidth: "Gap Width (m)",
-      gapHeight: "Gap Height (m)",
+      gapHeight: "Door/Window Gap Height (m)",
       
+      addStepBtn: "Add Step +",
+      stepTypeLine: "Wall (Forward)",
+      stepTypeTurn: "Corner (Turn)",
+      stepTypeDoor: "Door Gap",
+      stepTypeWindow: "Window Gap",
+      stepTypeArc: "Arc (Curved wall)",
+      turnAngle: "Turn Angle (°)",
+      windowHeight: "Window own height (m)",
+
       aiResultText: "AI successfully estimated dimensions!",
       aiEditBtn: "Edit Dimensions",
       aiDownloadBtn: "Download 3D DXF"
@@ -227,6 +244,7 @@ export const translations = {
       stairs: { title: "Создать Лестницу", desc: "Связь между этажами" },
       floor: { title: "Создать Пол", desc: "Внутреннее покрытие" },
       wall: { title: "Построить стену", desc: "Специальные стены" },
+      path: { title: "Сплошной путь", desc: "Пошаговое рисование" },
     },
     modal: {
       createTitle: "(генерация)",
@@ -239,7 +257,6 @@ export const translations = {
       dropMain: "Нажмите или перетащите картинку",
       dropSub: "ИИ автоматически распознает размеры",
       
-      // Fields
       length: "Длина (м)",
       width: "Ширина (м)",
       height: "Высота (м)",
@@ -255,7 +272,6 @@ export const translations = {
       stepRun: "Глубина ступени (м)",
       stepCount: "Количество ступеней",
       
-      // Wall fields extensions
       wallType: "Тип стены:",
       straight: "Прямая",
       angled: "Скошенная",
@@ -277,6 +293,15 @@ export const translations = {
       gapWidth: "Ширина проема (м)",
       gapHeight: "Высота проема (м)",
       
+      addStepBtn: "Добавить шаг +",
+      stepTypeLine: "Стена (Вперед)",
+      stepTypeTurn: "Угол (Поворот)",
+      stepTypeDoor: "Дверной проем",
+      stepTypeWindow: "Оконный проем",
+      stepTypeArc: "Дуга",
+      turnAngle: "Угол поворота (°)",
+      windowHeight: "Высота самого окна (м)",
+
       aiResultText: "Датчики ИИ определили размеры!",
       aiEditBtn: "Редактировать размеры",
       aiDownloadBtn: "Скачать 3D DXF"
