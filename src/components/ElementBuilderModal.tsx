@@ -38,6 +38,16 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
   const handleCreate = () => {
     setStage('processing');
     setTimeout(() => {
+      // Dastur faylni qotib qolmasdan yuklashi uchun mock (soxta) DXF fayl yaratish
+      const mockDxf = "0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1009\n0\nENDSEC\n0\nEOF";
+      const blob = new Blob([mockDxf], { type: 'application/dxf' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${module}_3d_model.dxf`;
+      a.click();
+      URL.revokeObjectURL(url);
+      
       setStage('done');
     }, 1500);
   };

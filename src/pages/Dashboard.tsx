@@ -74,7 +74,7 @@ const Dashboard = () => {
         </div>
       </main>
 
-      <ElementBuilderModal module={activeModule} onClose={() => setActiveModule(null)} />
+      <ElementBuilderModal key={activeModule || 'empty'} module={activeModule} onClose={() => setActiveModule(null)} />
     </div>
   );
 };
