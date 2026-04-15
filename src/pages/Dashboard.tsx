@@ -14,6 +14,7 @@ const Dashboard = () => {
 
   const modules: { id: BuilderModule; title: string; desc: string; icon: string }[] = [
     { id: 'house', title: t.modules.house.title, desc: t.modules.house.desc, icon: "M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" },
+    { id: 'wall', title: t.modules.wall.title, desc: t.modules.wall.desc, icon: "M4 6h16M4 12h16M4 18h16M8 6v6M16 12v6M12 18v6" },
     { id: 'foundation', title: t.modules.foundation.title, desc: t.modules.foundation.desc, icon: "M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2z" },
     { id: 'door', title: t.modules.door.title, desc: t.modules.door.desc, icon: "M14 18V6a2 2 0 0 0-2-2H4v16h16V8h-6" },
     { id: 'window', title: t.modules.window.title, desc: t.modules.window.desc, icon: "M3 3h18v18H3z M12 3v18 M3 12h18" },
