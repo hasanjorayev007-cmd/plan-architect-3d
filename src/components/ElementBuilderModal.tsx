@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 
 export type BuilderModule = 'window' | 'door' | 'roof' | 'foundation' | 'house' | 'stairs' | 'floor' | 'wall' | 'path';
 
-type PathStepType = 'line' | 'turn' | 'door' | 'window' | 'arc';
+type PathStepType = 'line' | 'turn_left' | 'turn_right' | 'door' | 'window' | 'arc';
 interface PathStep {
   id: string;
   type: PathStepType;
@@ -52,7 +52,7 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
     setPathSteps(prev => prev.map(s => s.id === id ? { ...s, [key]: val } : s));
   };
   const addPathStep = (type: PathStepType) => {
-    setPathSteps(prev => [...prev, { id: Math.random().toString(), type, val1: type === 'turn' ? '90' : '2', val2: type==='window' ? '1.5' : '2.1', val3: '0.9' }]);
+    setPathSteps(prev => [...prev, { id: Math.random().toString(), type, val1: type.startsWith('turn') ? '90' : '2', val2: type==='window' ? '1.5' : '2.1', val3: '0.9' }]);
   };
   const removePathStep = (id: string) => {
     setPathSteps(prev => prev.filter(s => s.id !== id));
@@ -142,7 +142,7 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
            } 
            else if (step.type === 'door') {
              const dist = parseFloat(step.val1) || 0;
-             const dHeight = parseFloat(step.val2) || 2.1;
+             const dHeight = 2.1; // Universal o'zgarmas default linter
              // Lintel qismi (Eshik osmoni)
              drawRotatedBox(currX, currY, dHeight, currAngle, dist, wt, h - dHeight);
              currX += dist * Math.cos(currAngle * Math.PI / 180);
@@ -159,9 +159,13 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
              currX += dist * Math.cos(currAngle * Math.PI / 180);
              currY += dist * Math.sin(currAngle * Math.PI / 180);
            }
-           else if (step.type === 'turn') {
+           else if (step.type === 'turn_left') {
              const angleDelta = parseFloat(step.val1) || 0;
              currAngle += angleDelta;
+           }
+           else if (step.type === 'turn_right') {
+             const angleDelta = parseFloat(step.val1) || 0;
+             currAngle -= angleDelta; // o'ngga burilganda matematik koordinata teskari yuradi
            }
            else if (step.type === 'arc') {
              const radius = parseFloat(step.val1) || 2;
@@ -284,26 +288,29 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
                <div className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0">{index + 1}</div>
                
                <div className="flex-1 space-y-3">
-                 <div className="font-medium text-sm text-foreground">{t.modal[`stepType${step.type.charAt(0).toUpperCase() + step.type.slice(1)}` as keyof typeof t.modal]}</div>
+                 <div className="font-medium text-sm text-foreground">
+                   {step.type === 'line' ? t.modal.stepTypeLine :
+                    step.type === 'door' ? t.modal.stepTypeDoor :
+                    step.type === 'window' ? t.modal.stepTypeWindow :
+                    step.type === 'turn_left' ? t.modal.stepTypeTurnLeft :
+                    step.type === 'turn_right' ? t.modal.stepTypeTurnRight : t.modal.stepTypeArc}
+                 </div>
                  
                  <div className="flex gap-3">
                     {step.type === 'line' && (
                       <input type="number" value={step.val1} onChange={e => updatePathStep(step.id, 'val1', e.target.value)} placeholder={t.modal.length} className="w-full text-xs p-2 rounded-md bg-background border border-border" />
                     )}
                     {step.type === 'door' && (
-                      <>
-                        <input type="number" value={step.val1} onChange={e => updatePathStep(step.id, 'val1', e.target.value)} placeholder={t.modal.gapWidth} className="w-full text-xs p-2 rounded-md bg-background border border-border" />
-                        <input type="number" value={step.val2} onChange={e => updatePathStep(step.id, 'val2', e.target.value)} placeholder={t.modal.gapHeight} className="w-full text-xs p-2 rounded-md bg-background border border-border" />
-                      </>
+                      <input type="number" value={step.val1} onChange={e => updatePathStep(step.id, 'val1', e.target.value)} placeholder="Tashlab o'tish masofasi (Eni)" className="w-full text-xs p-2 rounded-md bg-background border border-border" title="Qancha masofa tashlab o'tish (m)" />
                     )}
                     {step.type === 'window' && (
                       <>
-                        <input type="number" value={step.val1} onChange={e => updatePathStep(step.id, 'val1', e.target.value)} placeholder={t.modal.gapWidth} className="w-full text-xs p-2 rounded-md bg-background border border-border" title="Eni" />
-                        <input type="number" value={step.val2} onChange={e => updatePathStep(step.id, 'val2', e.target.value)} placeholder={t.modal.windowHeight} className="w-full text-xs p-2 rounded-md bg-background border border-border" title="Bal." />
-                        <input type="number" value={step.val3} onChange={e => updatePathStep(step.id, 'val3', e.target.value)} placeholder={t.modal.sillHeight} className="w-full text-xs p-2 rounded-md bg-background border border-border" title="Yerdan bal." />
+                        <input type="number" value={step.val1} onChange={e => updatePathStep(step.id, 'val1', e.target.value)} placeholder={(t.modal as any).windowWidth || 'Eni'} className="w-full text-xs p-2 rounded-md bg-background border border-border" title="Eni" />
+                        <input type="number" value={step.val2} onChange={e => updatePathStep(step.id, 'val2', e.target.value)} placeholder={(t.modal as any).windowHeight || 'Bal.'} className="w-full text-xs p-2 rounded-md bg-background border border-border" title="Bal." />
+                        <input type="number" value={step.val3} onChange={e => updatePathStep(step.id, 'val3', e.target.value)} placeholder={(t.modal as any).sillHeight || 'Yerdan bal.'} className="w-full text-xs p-2 rounded-md bg-background border border-border" title="Yerdan bal." />
                       </>
                     )}
-                    {step.type === 'turn' && (
+                    {(step.type === 'turn_left' || step.type === 'turn_right') && (
                       <input type="number" value={step.val1} onChange={e => updatePathStep(step.id, 'val1', e.target.value)} placeholder={t.modal.turnAngle} className="w-full text-xs p-2 rounded-md bg-background border border-border" />
                     )}
                     {step.type === 'arc' && (
@@ -322,12 +329,13 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
           ))}
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-2 pt-2">
-            <Button variant="outline" size="sm" onClick={() => addPathStep('line')} className="text-xs">+ {t.modal.stepTypeLine.split(' ')[0]}</Button>
-            <Button variant="outline" size="sm" onClick={() => addPathStep('door')} className="text-xs">+ Eshik Uzish</Button>
+        <div className="flex flex-wrap gap-2 pt-2">
+            <Button variant="outline" size="sm" onClick={() => addPathStep('line')} className="text-xs">+ Devor chizish</Button>
+            <Button variant="outline" size="sm" onClick={() => addPathStep('door')} className="text-xs">+ Ochiq joy tashlash</Button>
             <Button variant="outline" size="sm" onClick={() => addPathStep('window')} className="text-xs">+ Oyna Uzish</Button>
-            <Button variant="outline" size="sm" onClick={() => addPathStep('turn')} className="text-xs">+ Burchak</Button>
-            <Button variant="outline" size="sm" onClick={() => addPathStep('arc')} className="text-xs">+ Yoy</Button>
+            <Button variant="outline" size="sm" onClick={() => addPathStep('turn_left')} className="text-xs">+ Chapga burilish</Button>
+            <Button variant="outline" size="sm" onClick={() => addPathStep('turn_right')} className="text-xs">+ O'ngga burilish</Button>
+            <Button variant="outline" size="sm" onClick={() => addPathStep('arc')} className="text-xs">+ Yoy egish</Button>
         </div>
       </div>
     );
