@@ -34,12 +34,9 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
   const handleCreate = () => {
     setStage('processing');
     setTimeout(() => {
-      const w = parseFloat(params.width || params.length || params.stepWidth || '1');
-      const d = parseFloat(params.thickness || params.depth || params.wallThickness || params.frameDepth || '1');
-      const h = parseFloat(params.height || params.stepRise || '1');
+      const p = (k: string, fall: number) => parseFloat(params[k]) || fall;
 
-      // AutoCAD R12 (AC1009) gibrid formati. Bu versiya mutlaqo TABLES/CLASSES bo'limlarisiz 
-      // ishlash uchun rasman litsenziyalangan, shuning uchun 2026-yilgida ham nol xatosiz ochiladi.
+      // AutoCAD R12 (AC1009) gibrid formati.
       let currentDxf = "0\r\nSECTION\r\n2\r\nHEADER\r\n9\r\n$ACADVER\r\n1\r\nAC1009\r\n0\r\nENDSEC\r\n0\r\nSECTION\r\n2\r\nENTITIES\r\n";
       
       const formatNum = (num: number) => num.toFixed(2);
@@ -48,23 +45,72 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
         currentDxf += `0\r\nLINE\r\n8\r\n0\r\n10\r\n${formatNum(x1)}\r\n20\r\n${formatNum(y1)}\r\n30\r\n${formatNum(z1)}\r\n11\r\n${formatNum(x2)}\r\n21\r\n${formatNum(y2)}\r\n31\r\n${formatNum(z2)}\r\n`;
       };
 
-      // Pastki to'rtburchak
-      addLine(0, 0, 0, w, 0, 0);
-      addLine(w, 0, 0, w, d, 0);
-      addLine(w, d, 0, 0, d, 0);
-      addLine(0, d, 0, 0, 0, 0);
-      
-      // Yuqori to'rtburchak
-      addLine(0, 0, h, w, 0, h);
-      addLine(w, 0, h, w, d, h);
-      addLine(w, d, h, 0, d, h);
-      addLine(0, d, h, 0, 0, h);
+      const drawBox = (px: number, py: number, pz: number, wx: number, wy: number, wz: number) => {
+        // Bottom
+        addLine(px, py, pz, px+wx, py, pz);
+        addLine(px+wx, py, pz, px+wx, py+wy, pz);
+        addLine(px+wx, py+wy, pz, px, py+wy, pz);
+        addLine(px, py+wy, pz, px, py, pz);
+        // Top
+        addLine(px, py, pz+wz, px+wx, py, pz+wz);
+        addLine(px+wx, py, pz+wz, px+wx, py+wy, pz+wz);
+        addLine(px+wx, py+wy, pz+wz, px, py+wy, pz+wz);
+        addLine(px, py+wy, pz+wz, px, py, pz+wz);
+        // Verticals
+        addLine(px, py, pz, px, py, pz+wz);
+        addLine(px+wx, py, pz, px+wx, py, pz+wz);
+        addLine(px+wx, py+wy, pz, px+wx, py+wy, pz+wz);
+        addLine(px, py+wy, pz, px, py+wy, pz+wz);
+      };
 
-      // Ustunlar (Vertical)
-      addLine(0, 0, 0, 0, 0, h);
-      addLine(w, 0, 0, w, 0, h);
-      addLine(w, d, 0, w, d, h);
-      addLine(0, d, 0, 0, d, h);
+      if (module === 'foundation') {
+        const l = p('length', 10), w = p('width', 5), d = p('depth', 0.5);
+        drawBox(0, 0, -d, l, w, d);
+      } else if (module === 'floor') {
+        const l = p('length', 10), w = p('width', 5), t = p('thickness', 0.2);
+        drawBox(0, 0, 0, l, w, t);
+      } else if (module === 'house') {
+        const l = p('length', 10), w = p('width', 5), h = p('height', 3), wt = p('wallThickness', 0.3);
+        drawBox(0, 0, 0, wt, w, h); // Chap devor
+        drawBox(l - wt, 0, 0, wt, w, h); // O'ng devor
+        drawBox(wt, 0, 0, l - 2*wt, wt, h); // Old devor
+        drawBox(wt, w - wt, 0, l - 2*wt, wt, h); // Orqa devor
+      } else if (module === 'door') {
+        const w = p('width', 1), h = p('height', 2), fd = p('frameDepth', 0.1);
+        const pt = 0.05; // ramka qalinligi
+        drawBox(0, 0, 0, pt, fd, h); // Chap ustun
+        drawBox(w - pt, 0, 0, pt, fd, h); // O'ng ustun
+        drawBox(pt, 0, h - pt, w - 2*pt, fd, pt); // Tepa ramka
+        drawBox(pt, fd/2 - 0.02, 0, w - 2*pt, 0.04, h - pt); // Eshikning o'zi (panel)
+      } else if (module === 'window') {
+        const w = p('width', 1.5), h = p('height', 1.5), sh = p('sillHeight', 0.9);
+        const pt = 0.05, fd = 0.1;
+        drawBox(0, 0, sh, pt, fd, h); // Chap
+        drawBox(w - pt, 0, sh, pt, fd, h); // O'ng
+        drawBox(pt, 0, sh, w - 2*pt, fd, pt); // Pastki sill
+        drawBox(pt, 0, sh + h - pt, w - 2*pt, fd, pt); // Yuqori ramka
+        drawBox(w/2 - 0.02, 0.03, sh + pt, 0.04, 0.04, h - 2*pt); // Vertikal rom
+        drawBox(pt, 0.03, sh + h/2 - 0.02, w - 2*pt, 0.04, 0.04); // Gorizontal rom
+      } else if (module === 'roof') {
+        const l = p('length', 10), w = p('width', 5), pitch = p('pitch', 30), oh = p('overhang', 0.5);
+        const rH = (w/2 + oh) * Math.tan(pitch * Math.PI / 180);
+        addLine(-oh, -oh, 0, l+oh, -oh, 0);
+        addLine(l+oh, -oh, 0, l+oh, w+oh, 0);
+        addLine(l+oh, w+oh, 0, -oh, w+oh, 0);
+        addLine(-oh, w+oh, 0, -oh, -oh, 0);
+        addLine(-oh, w/2, rH, l+oh, w/2, rH); // tizma (ridge)
+        addLine(-oh, -oh, 0, -oh, w/2, rH);
+        addLine(-oh, w+oh, 0, -oh, w/2, rH);
+        addLine(l+oh, -oh, 0, l+oh, w/2, rH);
+        addLine(l+oh, w+oh, 0, l+oh, w/2, rH);
+      } else if (module === 'stairs') {
+        const w = p('stepWidth', 1.2), sR = p('stepRise', 0.15), sRun = p('stepRun', 0.3), count = parseInt(params.stepCount) || 10;
+        for (let i = 0; i < count; i++) {
+          const x = i * sRun;
+          const z = i * sR;
+          drawBox(x, 0, 0, sRun, w, z + sR); // tagidan qotgan solid zinalar kaskadi
+        }
+      }
 
       currentDxf += "0\r\nENDSEC\r\n0\r\nEOF\r\n";
 
@@ -72,7 +118,7 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${module}_3d_model_${w}x${d}x${h}.dxf`;
+      a.download = `${module}_3d_model.dxf`;
       a.click();
       URL.revokeObjectURL(url);
       
