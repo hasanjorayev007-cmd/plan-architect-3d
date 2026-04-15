@@ -17,7 +17,7 @@ const App = () => (
         <AuthProvider>
           <Toaster />
           <Sonner />
-          <BrowserRouter>
+          <BrowserRouter basename="/plan-architect-3d/">
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="*" element={<NotFound />} />
