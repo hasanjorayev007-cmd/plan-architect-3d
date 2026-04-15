@@ -13,13 +13,13 @@ const Dashboard = () => {
   const [activeModule, setActiveModule] = useState<BuilderModule | null>(null);
 
   const modules: { id: BuilderModule; title: string; desc: string; icon: string }[] = [
-    { id: 'house', title: 'Uy yaratish', desc: "Butun boshli quti devorlarni ko'tarish", icon: "M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" },
-    { id: 'foundation', title: 'Stayashka (Beton)', desc: "Uyning asos qismini yaratish", icon: "M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2z" },
-    { id: 'door', title: 'Eshik yaratish', desc: "O'lchamli yoki avtomat eshiklar", icon: "M14 18V6a2 2 0 0 0-2-2H4v16h16V8h-6" },
-    { id: 'window', title: 'Oyna yaratish', desc: "Rom va deraza qismlari", icon: "M3 3h18v18H3z M12 3v18 M3 12h18" },
-    { id: 'roof', title: 'Tom yaratish', desc: "Binoning yuqori yopish qismi", icon: "M2 10l10-8 10 8v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z" },
-    { id: 'stairs', title: 'Zinalar yaratish', desc: "Qadamli zinalar loyihalash", icon: "M14 14v6h4v-10h-4M6 20h4v-6H6M10 14h4V8h-4" },
-    { id: 'floor', title: 'Pol yaratish', desc: "Xonalar maydoni uchun pol", icon: "M2 16h20 M2 20h20 M5 12l7 5 l7-5" },
+    { id: 'house', title: t.modules.house.title, desc: t.modules.house.desc, icon: "M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" },
+    { id: 'foundation', title: t.modules.foundation.title, desc: t.modules.foundation.desc, icon: "M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2z" },
+    { id: 'door', title: t.modules.door.title, desc: t.modules.door.desc, icon: "M14 18V6a2 2 0 0 0-2-2H4v16h16V8h-6" },
+    { id: 'window', title: t.modules.window.title, desc: t.modules.window.desc, icon: "M3 3h18v18H3z M12 3v18 M3 12h18" },
+    { id: 'roof', title: t.modules.roof.title, desc: t.modules.roof.desc, icon: "M2 10l10-8 10 8v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z" },
+    { id: 'stairs', title: t.modules.stairs.title, desc: t.modules.stairs.desc, icon: "M14 14v6h4v-10h-4M6 20h4v-6H6M10 14h4V8h-4" },
+    { id: 'floor', title: t.modules.floor.title, desc: t.modules.floor.desc, icon: "M2 16h20 M2 20h20 M5 12l7 5 l7-5" },
   ];
 
   return (
@@ -33,8 +33,8 @@ const Dashboard = () => {
             </svg>
           </div>
           <div>
-            <h1 className="text-base font-bold text-foreground">FloorPlan3D</h1>
-            <p className="text-xs text-muted-foreground hidden sm:block">Advanced Architecture Builder</p>
+            <h1 className="text-base font-bold text-foreground">{t.dashboard.title}</h1>
+            <p className="text-xs text-muted-foreground hidden sm:block">{t.dashboard.subtitle}</p>
           </div>
         </div>
         <div className="flex items-center gap-4">
@@ -48,8 +48,8 @@ const Dashboard = () => {
       {/* Main Grid */}
       <main className="flex-1 p-6 md:p-8 max-w-7xl mx-auto w-full">
         <div className="mb-8 max-w-2xl">
-          <h2 className="text-3xl font-bold tracking-tight mb-2">Loyiha bo'limlari</h2>
-          <p className="text-muted-foreground">O'zingiz yaratmoqchi bo'lgan arxitektura qismini tanlang. O'lchamlarni qo'lda kiritishingiz yoki AI uchun rasm yuklashingiz mumkin.</p>
+          <h2 className="text-3xl font-bold tracking-tight mb-2">{t.dashboard.title}</h2>
+          <p className="text-muted-foreground">{t.dashboard.subtitle}</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">

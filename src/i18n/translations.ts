@@ -27,7 +27,32 @@ export const translations = {
       error: "Xatolik yuz berdi",
       wallHeight: "Devor balandligi (m)",
       wallThickness: "Devor qalinligi (m)",
+      title: "FloorPlan3D",
+      subtitle: "Ilg'or 3D Arxitektura Dasturi",
     },
+    modules: {
+      house: { title: "Uy yaratish", desc: "Butun bino asosi" },
+      foundation: { title: "Stayashka (Beton)", desc: "Asos poydevor" },
+      door: { title: "Eshik yaratish", desc: "Xonalar aro o'tish marshruti" },
+      window: { title: "Oyna yaratish", desc: "Yorug'lik va shamollatish" },
+      roof: { title: "Tom yaratish", desc: "Binoning yuqori qoplamasi" },
+      stairs: { title: "Zinalar yaratish", desc: "Qavatlar aro bog'liqlik" },
+      floor: { title: "Pol yaratish", desc: "Ichki zamin qoplamasi" },
+    },
+    modal: {
+      createTitle: "yaratish",
+      manual: "O'lcham kiritish",
+      ai: "AI - Rasm orqali",
+      processing: "Obyekt tayyorlanmoqda...",
+      success: "Muvaffaqiyatli yaratildi!",
+      close: "Yopish",
+      width: "Eni (m)",
+      height: "Bo'yi (m)",
+      thickness: "Qalinligi / Chuqurligi (m)",
+      submit: "Yaratish",
+      dropMain: "Bosing yoki rasmni tashlang",
+      dropSub: "AI rasmdan o'lchamlarni avtomatik taniydi",
+    }
   },
   en: {
     login: {
@@ -55,7 +80,32 @@ export const translations = {
       error: "An error occurred",
       wallHeight: "Wall height (m)",
       wallThickness: "Wall thickness (m)",
+      title: "FloorPlan3D",
+      subtitle: "Advanced 3D Architecture Builder",
     },
+    modules: {
+      house: { title: "Build House", desc: "Full building foundation" },
+      foundation: { title: "Foundation", desc: "Base concrete layer" },
+      door: { title: "Add Door", desc: "Inter-room pathway" },
+      window: { title: "Add Window", desc: "Lighting and ventilation" },
+      roof: { title: "Build Roof", desc: "Top structure cover" },
+      stairs: { title: "Build Stairs", desc: "Inter-floor connection" },
+      floor: { title: "Add Floor", desc: "Interior base covering" },
+    },
+    modal: {
+      createTitle: "creation",
+      manual: "Manual Dimensions",
+      ai: "AI - From Image",
+      processing: "Processing object...",
+      success: "Successfully created!",
+      close: "Close",
+      width: "Width (m)",
+      height: "Height (m)",
+      thickness: "Thickness / Depth (m)",
+      submit: "Create",
+      dropMain: "Click or drop image here",
+      dropSub: "AI automatically detects dimensions from image",
+    }
   },
   ru: {
     login: {
@@ -83,35 +133,33 @@ export const translations = {
       error: "Произошла ошибка",
       wallHeight: "Высота стен (м)",
       wallThickness: "Толщина стен (м)",
+      title: "FloorPlan3D",
+      subtitle: "Продвинутый 3D-архитектурный конструктор",
     },
+    modules: {
+      house: { title: "Создать Дом", desc: "Основа всего здания" },
+      foundation: { title: "Стяжка (Фундамент)", desc: "Базовый слой" },
+      door: { title: "Создать Дверь", desc: "Межкомнатный проход" },
+      window: { title: "Создать Окно", desc: "Освещение и вентиляция" },
+      roof: { title: "Создать Крышу", desc: "Верхнее покрытие" },
+      stairs: { title: "Создать Лестницу", desc: "Связь между этажами" },
+      floor: { title: "Создать Пол", desc: "Внутреннее покрытие" },
+    },
+    modal: {
+      createTitle: "(генерация)",
+      manual: "Ввод размеров",
+      ai: "ИИ - По изображению",
+      processing: "Объект обрабатывается...",
+      success: "Успешно создано!",
+      close: "Закрыть",
+      width: "Ширина (м)",
+      height: "Высота (м)",
+      thickness: "Толщина / Глубина (м)",
+      submit: "Создать",
+      dropMain: "Нажмите или перетащите картинку",
+      dropSub: "ИИ автоматически распознает размеры",
+    }
   },
 } as const;
 
-export type TranslationKey = {
-  login: {
-    title: string;
-    username: string;
-    password: string;
-    secretCode: string;
-    submit: string;
-    error: string;
-  };
-  dashboard: {
-    start: string;
-    upload: string;
-    uploadHint: string;
-    dragDrop: string;
-    orClick: string;
-    processing: string;
-    detecting: string;
-    generating: string;
-    exporting: string;
-    download: string;
-    newProject: string;
-    logout: string;
-    success: string;
-    error: string;
-    wallHeight: string;
-    wallThickness: string;
-  };
-};
+export type TranslationKey = typeof translations['uz'];
