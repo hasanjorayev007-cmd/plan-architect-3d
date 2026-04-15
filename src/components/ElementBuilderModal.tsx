@@ -34,15 +34,15 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
   const handleCreate = () => {
     setStage('processing');
     setTimeout(() => {
-      // AutoCAD 2018-2026 mos keladigan (AC1032) formatida haqiqiy 3D chizma kodlash
       const w = parseFloat(params.width || params.length || params.stepWidth || '1');
       const d = parseFloat(params.thickness || params.depth || params.wallThickness || params.frameDepth || '1');
       const h = parseFloat(params.height || params.stepRise || '1');
 
-      let currentDxf = "0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1032\n0\nENDSEC\n0\nSECTION\n2\nENTITIES\n";
+      // Yalango'ch (faqat ENTITIES bo'lgan) DXF. Windows muhiti (AutoCAD) uchun mutlaqo \r\n shart
+      let currentDxf = "0\r\nSECTION\r\n2\r\nENTITIES\r\n";
       
       const addLine = (x1: number, y1: number, z1: number, x2: number, y2: number, z2: number) => {
-        currentDxf += `0\nLINE\n8\n0\n10\n${x1}\n20\n${y1}\n30\n${z1}\n11\n${x2}\n21\n${y2}\n31\n${z2}\n`;
+        currentDxf += `0\r\nLINE\r\n8\r\n0\r\n10\r\n${x1}\r\n20\r\n${y1}\r\n30\r\n${z1}\r\n11\r\n${x2}\r\n21\r\n${y2}\r\n31\r\n${z2}\r\n`;
       };
 
       // Pastki to'rtburchak
@@ -63,7 +63,7 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
       addLine(w, d, 0, w, d, h);
       addLine(0, d, 0, 0, d, h);
 
-      currentDxf += "0\nENDSEC\n0\nEOF\n";
+      currentDxf += "0\r\nENDSEC\r\n0\r\nEOF\r\n";
 
       const blob = new Blob([currentDxf], { type: 'application/dxf' });
       const url = URL.createObjectURL(blob);
@@ -82,7 +82,7 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
     setDragOver(false);
     const file = e.dataTransfer.files[0];
     if (file) handleCreate();
-  }, [params]); // Ensure params are accessible
+  }, [params]);
 
   const renderManualFields = () => {
     const fieldsMap: Record<BuilderModule, string[]> = {
