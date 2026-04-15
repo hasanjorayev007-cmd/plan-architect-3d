@@ -67,17 +67,30 @@ export const translations = {
       stepRun: "Qadam chuqurligi (m)",
       stepCount: "Zinalar soni (dona)",
       
-      // Additional Wall fields
+      // Wall fields extensions
       wallType: "Devor shaklini tanlang:",
-      straight: "To'g'ri (Straight)",
-      angled: "Kesik / Qiya (Angled)",
-      curved: "Egri (Curved)",
-      startHeight: "Boshlang'ich balandlik (m)",
-      endHeight: "Tugash balandligi (m)",
+      straight: "To'g'ri",
+      angled: "Kesik / Qiya",
+      curved: "Egri",
+      startHeight: "Boshlang'ich bal.",
+      endHeight: "Tugash bal.",
       radius: "Egrilik Radiusi (m)",
       arcAngle: "Yoy burchagi (°)",
       
-      // AI action buttons
+      // L-shape and Gaps
+      partsCount: "Qismlar soni:",
+      part1: "1-Tomon (Yakka)",
+      part2: "2-Tomon (L-shakl)",
+      length1: "1-Devor uzunligi (m)",
+      length2: "2-Devor uzunligi (m)",
+      hasGap: "Uzilish bormi?",
+      gapNo: "Yo'q",
+      gapYes: "Bor (Eshik/Oyna)",
+      gapStart: "Uzilish boshi (m)",
+      gapWidth: "Uzilish eni (m)",
+      gapHeight: "Uzilish balandligi (m)",
+
+      // AI buttons
       aiResultText: "AI taxminiy o'lchamlarni topdi!",
       aiEditBtn: "O'lchamlarni tahrirlash",
       aiDownloadBtn: "3D DXF yuklash"
@@ -149,17 +162,28 @@ export const translations = {
       stepRun: "Step Run Depth (m)",
       stepCount: "Step Count",
       
-      // Additional Wall fields
+      // Wall fields extensions
       wallType: "Select wall type:",
       straight: "Straight",
       angled: "Angled / Trimmed",
       curved: "Curved",
-      startHeight: "Starting Height (m)",
-      endHeight: "Ending Height (m)",
+      startHeight: "Start Height",
+      endHeight: "End Height",
       radius: "Curve Radius (m)",
       arcAngle: "Arc Angle (°)",
+
+      partsCount: "Parts structure:",
+      part1: "1-Sided (Single)",
+      part2: "2-Sided (L-Shape)",
+      length1: "Wall 1 Length (m)",
+      length2: "Wall 2 Length (m)",
+      hasGap: "Add Opening?",
+      gapNo: "No",
+      gapYes: "Yes (Door/Window)",
+      gapStart: "Gap Start Point (m)",
+      gapWidth: "Gap Width (m)",
+      gapHeight: "Gap Height (m)",
       
-      // AI action buttons
       aiResultText: "AI successfully estimated dimensions!",
       aiEditBtn: "Edit Dimensions",
       aiDownloadBtn: "Download 3D DXF"
@@ -231,17 +255,28 @@ export const translations = {
       stepRun: "Глубина ступени (м)",
       stepCount: "Количество ступеней",
       
-      // Additional Wall fields
+      // Wall fields extensions
       wallType: "Тип стены:",
       straight: "Прямая",
-      angled: "Скошенная (Угловая)",
+      angled: "Скошенная",
       curved: "Изогнутая",
-      startHeight: "Начальная высота (м)",
-      endHeight: "Конечная высота (м)",
+      startHeight: "Нач. высота",
+      endHeight: "Кон. высота",
       radius: "Радиус изгиба (м)",
       arcAngle: "Угол дуги (°)",
+
+      partsCount: "Кол-во частей:",
+      part1: "1-сторонняя",
+      part2: "2-сторонняя (L-образ.)",
+      length1: "Длина стены 1 (м)",
+      length2: "Длина стены 2 (м)",
+      hasGap: "Добавить проем?",
+      gapNo: "Нет",
+      gapYes: "Да (Дверь/Окно)",
+      gapStart: "Начало проема (м)",
+      gapWidth: "Ширина проема (м)",
+      gapHeight: "Высота проема (м)",
       
-      // AI action buttons
       aiResultText: "Датчики ИИ определили размеры!",
       aiEditBtn: "Редактировать размеры",
       aiDownloadBtn: "Скачать 3D DXF"

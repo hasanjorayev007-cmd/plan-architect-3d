@@ -14,11 +14,12 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
   const fileRef = useRef<HTMLInputElement>(null);
   
   const [tab, setTab] = useState<'ai' | 'manual'>('manual');
-  // AI upload endi to'g'ridan to'g'ri 'done' (DXF) qilmaydi, 'aiResults' da to'xtaydi.
   const [stage, setStage] = useState<'idle' | 'processing' | 'done' | 'aiResults'>('idle');
   const [dragOver, setDragOver] = useState(false);
   
   const [wallType, setWallType] = useState<'straight' | 'angled' | 'curved'>('straight');
+  const [partsCount, setPartsCount] = useState<'1' | '2'>('1');
+  const [hasGap, setHasGap] = useState<'no' | 'yes'>('no');
   
   const [params, setParams] = useState<Record<string, string>>({
     length: '10.0', width: '5.0', height: '3.0',
@@ -26,7 +27,9 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
     frameDepth: '0.1', sillHeight: '0.9',
     pitch: '30', overhang: '0.5',
     stepWidth: '1.2', stepRise: '0.15', stepRun: '0.3', stepCount: '10',
-    startHeight: '3.0', endHeight: '4.5', radius: '5.0', arcAngle: '180'
+    startHeight: '3.0', endHeight: '4.5', radius: '5.0', arcAngle: '180',
+    length1: '6.0', length2: '8.0',
+    gapStart: '2.0', gapWidth: '1.0', gapHeight: '2.1'
   });
 
   const handleChange = (key: string, val: string) => {
@@ -38,13 +41,7 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
   const performAIAnalysis = () => {
     setStage('processing');
     setTimeout(() => {
-      // Mock generated numbers mapping depending on module
-      setParams(prev => ({
-        ...prev,
-        length: '8.5',
-        width: '4.2',
-        height: '2.8'
-      }));
+      setParams(prev => ({ ...prev, length: '8.5', width: '4.2', height: '2.8' }));
       setStage('aiResults');
     }, 2500);
   };
@@ -69,18 +66,52 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
         addLine(px+wx, py+wy, pz, px+wx, py+wy, pz+wz); addLine(px, py+wy, pz, px, py+wy, pz+wz);
       };
 
+      // Y-axis bo'yicha devor qismi (L-shakl uchun 2-qalqon)
+      const drawWallY = (py: number, len: number, w: number, h: number) => {
+        if (hasGap === 'yes') {
+          const gS = p('gapStart', 2), gW = p('gapWidth', 1), gH = p('gapHeight', 2.1);
+          drawBox(0, py, 0, w, gS, h);
+          drawBox(0, py + gS + gW, 0, w, len - gS - gW, h);
+          drawBox(0, py + gS, gH, w, gW, h - gH);
+        } else {
+          drawBox(0, py, 0, w, len, h);
+        }
+      };
+
+      // X-axis bo'yicha devor qismi
+      const drawWallX = (px: number, len: number, w: number, h: number) => {
+        if (hasGap === 'yes') {
+          const gS = p('gapStart', 2), gW = p('gapWidth', 1), gH = p('gapHeight', 2.1);
+          drawBox(px, 0, 0, gS, w, h);
+          drawBox(px + gS + gW, 0, 0, len - gS - gW, w, h);
+          drawBox(px + gS, 0, gH, gW, w, h - gH);
+        } else {
+          drawBox(px, 0, 0, len, w, h);
+        }
+      };
+
       if (module === 'foundation') {
-        const l = p('length', 10), w = p('width', 5), d = p('depth', 0.5);
-        drawBox(0, 0, -d, l, w, d);
+        drawBox(0, 0, -p('depth', 0.5), p('length', 10), p('width', 5), p('depth', 0.5));
       } else if (module === 'floor') {
-        const l = p('length', 10), w = p('width', 5), t = p('thickness', 0.2);
-        drawBox(0, 0, 0, l, w, t);
+        drawBox(0, 0, 0, p('length', 10), p('width', 5), p('thickness', 0.2));
       } else if (module === 'house') {
         const l = p('length', 10), w = p('width', 5), h = p('height', 3), wt = p('wallThickness', 0.3);
-        drawBox(0, 0, 0, wt, w, h);
-        drawBox(l - wt, 0, 0, wt, w, h);
-        drawBox(wt, 0, 0, l - 2*wt, wt, h);
-        drawBox(wt, w - wt, 0, l - 2*wt, wt, h);
+        // Oddiy "Uy" uchun bitta uzilish qoldirish (old devorda gap qoldiramiz agar bo'lsa)
+        if (hasGap === 'yes') {
+           const gS = p('gapStart', 2), gW = p('gapWidth', 1), gH = p('gapHeight', 2.1);
+           drawBox(0, 0, 0, wt, w, h); // chap
+           drawBox(l - wt, 0, 0, wt, w, h); // o'ng
+           drawBox(wt, w - wt, 0, l - 2*wt, wt, h); // orqa
+           // old devor (ikki bo'lak va lintel)
+           drawBox(wt, 0, 0, gS, wt, h);
+           drawBox(wt + gS + gW, 0, 0, l - 2*wt - (gS + gW), wt, h);
+           drawBox(wt + gS, 0, gH, gW, wt, h - gH);
+        } else {
+          drawBox(0, 0, 0, wt, w, h);
+          drawBox(l - wt, 0, 0, wt, w, h);
+          drawBox(wt, 0, 0, l - 2*wt, wt, h);
+          drawBox(wt, w - wt, 0, l - 2*wt, wt, h);
+        }
       } else if (module === 'door') {
         const w = p('width', 1), h = p('height', 2), fd = p('frameDepth', 0.1), pt = 0.05;
         drawBox(0, 0, 0, pt, fd, h); drawBox(w - pt, 0, 0, pt, fd, h);
@@ -102,53 +133,40 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
         addLine(l+oh, -oh, 0, l+oh, w/2, rH); addLine(l+oh, w+oh, 0, l+oh, w/2, rH);
       } else if (module === 'stairs') {
         const w = p('stepWidth', 1.2), sR = p('stepRise', 0.15), sRun = p('stepRun', 0.3), count = parseInt(params.stepCount) || 10;
-        for (let i = 0; i < count; i++) {
-          drawBox(i * sRun, 0, 0, sRun, w, i * sR + sR);
-        }
+        for (let i = 0; i < count; i++) drawBox(i * sRun, 0, 0, sRun, w, i * sR + sR);
       } else if (module === 'wall') {
-        const l = p('length', 5), h = p('height', 3), wt = p('wallThickness', 0.3);
+        const h = p('height', 3), wt = p('wallThickness', 0.3);
+        
         if (wallType === 'straight') {
-          drawBox(0, 0, 0, l, wt, h);
+           if (partsCount === '1') {
+             drawWallX(0, p('length', 5), wt, h);
+           } else {
+             const L1 = p('length1', 5), L2 = p('length2', 4);
+             drawWallX(0, L1, wt, h);
+             drawWallY(wt, L2 - wt, wt, h); // L-ulanish nuqtasini siqamiz
+           }
         } else if (wallType === 'angled') {
-          const sh = p('startHeight', 2), eh = p('endHeight', 4);
-          // Rectangular base
+          const l = p('length', 5), sh = p('startHeight', 2), eh = p('endHeight', 4);
           addLine(0,0,0, l,0,0); addLine(l,0,0, l,wt,0); addLine(l,wt,0, 0,wt,0); addLine(0,wt,0, 0,0,0);
-          // Angled Top
           addLine(0,0,sh, l,0,eh); addLine(l,0,eh, l,wt,eh); addLine(l,wt,eh, 0,wt,sh); addLine(0,wt,sh, 0,0,sh);
-          // Verticals
           addLine(0,0,0, 0,0,sh); addLine(l,0,0, l,0,eh); addLine(l,wt,0, l,wt,eh); addLine(0,wt,0, 0,wt,sh);
         } else if (wallType === 'curved') {
-          const R = p('radius', 5), angle = p('arcAngle', 90);
-          const segments = 12; // number of facets to approximate curve
-          const innerR = R - (wt/2);
-          const outerR = R + (wt/2);
+          const R = p('radius', 5), angle = p('arcAngle', 90), segments = 12;
+          const innerR = R - (wt/2), outerR = R + (wt/2);
           for (let i = 0; i < segments; i++) {
-            const startAng = (i * angle / segments) * Math.PI / 180;
-            const endAng = ((i+1) * angle / segments) * Math.PI / 180;
+            const sA = (i * angle / segments) * Math.PI / 180, eA = ((i+1) * angle / segments) * Math.PI / 180;
+            const pI1X = innerR * Math.cos(sA), pI1Y = innerR * Math.sin(sA);
+            const pI2X = innerR * Math.cos(eA), pI2Y = innerR * Math.sin(eA);
+            const pO1X = outerR * Math.cos(sA), pO1Y = outerR * Math.sin(sA);
+            const pO2X = outerR * Math.cos(eA), pO2Y = outerR * Math.sin(eA);
             
-            const pxIn1 = innerR * Math.cos(startAng), pyIn1 = innerR * Math.sin(startAng);
-            const pxIn2 = innerR * Math.cos(endAng), pyIn2 = innerR * Math.sin(endAng);
-            const pxOut1 = outerR * Math.cos(startAng), pyOut1 = outerR * Math.sin(startAng);
-            const pxOut2 = outerR * Math.cos(endAng), pyOut2 = outerR * Math.sin(endAng);
-            
-            // Bottom lines
-            addLine(pxIn1, pyIn1, 0, pxIn2, pyIn2, 0);
-            addLine(pxOut1, pyOut1, 0, pxOut2, pyOut2, 0);
-            // Top lines
-            addLine(pxIn1, pyIn1, h, pxIn2, pyIn2, h);
-            addLine(pxOut1, pyOut1, h, pxOut2, pyOut2, h);
-            // Verticals and caps
-            addLine(pxIn1, pyIn1, 0, pxIn1, pyIn1, h);
-            addLine(pxOut1, pyOut1, 0, pxOut1, pyOut1, h);
-            if (i === 0) {
-              addLine(pxIn1, pyIn1, 0, pxOut1, pyOut1, 0);
-              addLine(pxIn1, pyIn1, h, pxOut1, pyOut1, h);
-            }
+            addLine(pI1X, pI1Y, 0, pI2X, pI2Y, 0); addLine(pO1X, pO1Y, 0, pO2X, pO2Y, 0);
+            addLine(pI1X, pI1Y, h, pI2X, pI2Y, h); addLine(pO1X, pO1Y, h, pO2X, pO2Y, h);
+            addLine(pI1X, pI1Y, 0, pI1X, pI1Y, h); addLine(pO1X, pO1Y, 0, pO1X, pO1Y, h);
+            if (i === 0) { addLine(pI1X, pI1Y, 0, pO1X, pO1Y, 0); addLine(pI1X, pI1Y, h, pO1X, pO1Y, h); }
             if (i === segments - 1) {
-              addLine(pxIn2, pyIn2, 0, pxOut2, pyOut2, 0);
-              addLine(pxIn2, pyIn2, h, pxOut2, pyOut2, h);
-              addLine(pxIn2, pyIn2, 0, pxIn2, pyIn2, h);
-              addLine(pxOut2, pyOut2, 0, pxOut2, pyOut2, h);
+              addLine(pI2X, pI2Y, 0, pO2X, pO2Y, 0); addLine(pI2X, pI2Y, h, pO2X, pO2Y, h);
+              addLine(pI2X, pI2Y, 0, pI2X, pI2Y, h); addLine(pO2X, pO2Y, 0, pO2X, pO2Y, h);
             }
           }
         }
@@ -189,26 +207,71 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
     let activeFields = fieldsMap[module] || [];
     
     if (module === 'wall') {
-      if (wallType === 'straight') activeFields = ['length', 'height', 'wallThickness'];
-      else if (wallType === 'angled') activeFields = ['length', 'startHeight', 'endHeight', 'wallThickness'];
-      else if (wallType === 'curved') activeFields = ['radius', 'arcAngle', 'height', 'wallThickness'];
+      if (wallType === 'straight') {
+        activeFields = partsCount === '1' ? ['length', 'height', 'wallThickness'] : ['length1', 'length2', 'height', 'wallThickness'];
+      } else if (wallType === 'angled') {
+        activeFields = ['length', 'startHeight', 'endHeight', 'wallThickness'];
+      } else if (wallType === 'curved') {
+        activeFields = ['radius', 'arcAngle', 'height', 'wallThickness'];
+      }
+    }
+
+    // Uzilish quyi maydonlari
+    if ((module === 'wall' && wallType === 'straight') || module === 'house') {
+      if (hasGap === 'yes') {
+        activeFields = [...activeFields, 'gapStart', 'gapWidth', 'gapHeight'];
+      }
     }
 
     return (
       <div className="space-y-4">
         {module === 'wall' && (
-          <div className="space-y-2 pb-2 border-b border-border">
-            <label className="text-xs font-medium text-muted-foreground">{t.modal.wallType}</label>
-            <div className="flex bg-secondary p-1 rounded-lg">
-              {(['straight', 'angled', 'curved'] as const).map(type => (
-                <button
-                  key={type}
-                  onClick={() => setWallType(type)}
-                  className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-all ${wallType === type ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
-                >
-                  {t.modal[type]}
-                </button>
-              ))}
+          <div className="space-y-4 pb-4 border-b border-border">
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-muted-foreground">{t.modal.wallType}</label>
+              <div className="flex bg-secondary p-1 rounded-lg">
+                {(['straight', 'angled', 'curved'] as const).map(type => (
+                  <button
+                    key={type} onClick={() => setWallType(type)}
+                    className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-all ${wallType === type ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                  >
+                    {t.modal[type]}
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            {wallType === 'straight' && (
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-muted-foreground">{t.modal.partsCount}</label>
+                <div className="flex bg-secondary p-1 rounded-lg">
+                  {(['1', '2'] as const).map(pC => (
+                    <button
+                      key={pC} onClick={() => setPartsCount(pC)}
+                      className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-all ${partsCount === pC ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                    >
+                      {pC === '1' ? t.modal.part1 : t.modal.part2}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Uzilish filtri faqat House yoki Tog'ri devorda */}
+        {((module === 'wall' && wallType === 'straight') || module === 'house') && (
+           <div className="space-y-2 pb-2 border-b border-border">
+              <label className="text-xs font-medium text-muted-foreground">{t.modal.hasGap}</label>
+              <div className="flex bg-secondary p-1 rounded-lg">
+                {(['no', 'yes'] as const).map(hG => (
+                  <button
+                    key={hG} onClick={() => setHasGap(hG)}
+                    className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-all ${hasGap === hG ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                  >
+                    {hG === 'no' ? t.modal.gapNo : t.modal.gapYes}
+                  </button>
+                ))}
             </div>
           </div>
         )}
@@ -217,7 +280,7 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
           {activeFields.map((fieldKey) => (
             <div key={fieldKey} className={`space-y-2 ${activeFields.length % 2 !== 0 && fieldKey === activeFields[activeFields.length - 1] ? 'col-span-2' : ''}`}>
               <label className="text-xs font-medium text-muted-foreground">
-                {t.modal[fieldKey as keyof typeof t.modal] || fieldKey}
+                {(t.modal as unknown as Record<string, string>)[fieldKey] || fieldKey}
               </label>
               <input 
                 type="number" step="0.01" 
@@ -234,14 +297,12 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
 
   return (
     <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-card w-full max-w-lg rounded-2xl shadow-xl border border-border overflow-hidden">
+      <div className="bg-card w-full max-w-lg rounded-2xl shadow-xl border border-border overflow-hidden max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border sticky top-0 bg-card z-10">
           <h2 className="text-lg font-semibold">{t.modules[module].title} {t.modal.createTitle}</h2>
           <button onClick={onClose} className="p-2 hover:bg-muted rounded-full transition-colors">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M18 6L6 18M6 6l12 12"/>
-            </svg>
+             X
           </button>
         </div>
 
@@ -275,7 +336,7 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
                   <path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
                 </svg>
               </div>
-              <p className="text-sm font-medium">{t.modal.aiResultText}</p>
+              <p className="text-sm font-medium text-center px-4">{t.modal.aiResultText}</p>
               <div className="flex gap-3 w-full">
                 <Button variant="outline" className="flex-1" onClick={() => { setStage('idle'); setTab('manual'); }}>
                   {t.modal.aiEditBtn}
@@ -288,9 +349,7 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
           ) : stage === 'done' ? (
              <div className="py-12 flex flex-col items-center justify-center space-y-4">
               <div className="w-12 h-12 bg-success/20 text-success rounded-full flex items-center justify-center animate-in zoom-in">
-                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M20 6L9 17l-5-5"/>
-                </svg>
+                 ✓
               </div>
               <p className="text-sm font-medium">{t.modal.success}</p>
               <Button onClick={onClose} className="mt-4 w-32">{t.modal.close}</Button>
@@ -318,11 +377,6 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
                     <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={e => {
                       if (e.target.files && e.target.files.length > 0) performAIAnalysis();
                     }} />
-                    <div className="mx-auto w-12 h-12 rounded-full bg-secondary flex items-center justify-center mb-3">
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-muted-foreground">
-                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
-                      </svg>
-                    </div>
                     <p className="text-sm font-medium transition-colors">{t.modal.dropMain}</p>
                     <p className="text-xs text-muted-foreground mt-1">{t.modal.dropSub}</p>
                   </div>
