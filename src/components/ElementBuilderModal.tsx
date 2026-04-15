@@ -38,11 +38,14 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
       const d = parseFloat(params.thickness || params.depth || params.wallThickness || params.frameDepth || '1');
       const h = parseFloat(params.height || params.stepRise || '1');
 
-      // Yalango'ch (faqat ENTITIES bo'lgan) DXF. Windows muhiti (AutoCAD) uchun mutlaqo \r\n shart
-      let currentDxf = "0\r\nSECTION\r\n2\r\nENTITIES\r\n";
+      // AutoCAD R12 (AC1009) gibrid formati. Bu versiya mutlaqo TABLES/CLASSES bo'limlarisiz 
+      // ishlash uchun rasman litsenziyalangan, shuning uchun 2026-yilgida ham nol xatosiz ochiladi.
+      let currentDxf = "0\r\nSECTION\r\n2\r\nHEADER\r\n9\r\n$ACADVER\r\n1\r\nAC1009\r\n0\r\nENDSEC\r\n0\r\nSECTION\r\n2\r\nENTITIES\r\n";
       
+      const formatNum = (num: number) => num.toFixed(2);
+
       const addLine = (x1: number, y1: number, z1: number, x2: number, y2: number, z2: number) => {
-        currentDxf += `0\r\nLINE\r\n8\r\n0\r\n10\r\n${x1}\r\n20\r\n${y1}\r\n30\r\n${z1}\r\n11\r\n${x2}\r\n21\r\n${y2}\r\n31\r\n${z2}\r\n`;
+        currentDxf += `0\r\nLINE\r\n8\r\n0\r\n10\r\n${formatNum(x1)}\r\n20\r\n${formatNum(y1)}\r\n30\r\n${formatNum(z1)}\r\n11\r\n${formatNum(x2)}\r\n21\r\n${formatNum(y2)}\r\n31\r\n${formatNum(z2)}\r\n`;
       };
 
       // Pastki to'rtburchak
