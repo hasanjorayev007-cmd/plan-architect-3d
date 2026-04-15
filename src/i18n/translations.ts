@@ -101,6 +101,8 @@ export const translations = {
       turnAngle: "Gradus (Masalan: 90°)",
       windowWidth: "Deraza Eni (cm)",
       windowHeight: "Deraza Bo'yi (cm)",
+      startX: "Boshlang'ich X_o'qi (cm)",
+      startY: "Boshlang'ich Y_o'qi (cm)",
       
       aiResultText: "AI taxminiy o'lchamlarni topdi!",
       aiEditBtn: "O'lchamlarni tahrirlash",
@@ -204,6 +206,8 @@ export const translations = {
       turnAngle: "Degrees (e.g. 90°)",
       windowWidth: "Window Width (cm)",
       windowHeight: "Window Height (cm)",
+      startX: "Start X Axis (cm)",
+      startY: "Start Y Axis (cm)",
 
       aiResultText: "AI successfully estimated dimensions!",
       aiEditBtn: "Edit Dimensions",
@@ -307,6 +311,8 @@ export const translations = {
       turnAngle: "Градусы (напр. 90°)",
       windowWidth: "Ширина окна (cm)",
       windowHeight: "Высота окна (cm)",
+      startX: "Старт Ось X (cm)",
+      startY: "Старт Ось Y (cm)",
 
       aiResultText: "Датчики ИИ определили размеры!",
       aiEditBtn: "Редактировать размеры",

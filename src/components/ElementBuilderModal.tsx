@@ -43,7 +43,8 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
     stepWidth: '120', stepRise: '15', stepRun: '30', stepCount: '10',
     startHeight: '300', endHeight: '450', radius: '500', arcAngle: '180',
     length1: '600', length2: '800',
-    gapStart: '200', gapWidth: '100', gapHeight: '210'
+    gapStart: '200', gapWidth: '100', gapHeight: '210',
+    startX: '0', startY: '0'
   });
 
   const handleChange = (key: string, val: string) => setParams(prev => ({ ...prev, [key]: val }));
@@ -127,7 +128,7 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
 
       if (module === 'path') {
         const wt = p('wallThickness', 30), h = p('height', 300);
-        let currX = 0, currY = 0, currAngle = 0; 
+        let currX = p('startX', 0), currY = p('startY', 0), currAngle = 0; 
 
         pathSteps.forEach(step => {
            if (step.type === 'line') {
@@ -263,7 +264,15 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
   const renderPathBuilderFields = () => {
     return (
       <div className="space-y-6">
-        <div className="grid grid-cols-2 gap-4 pb-4 border-b border-border">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pb-4 border-b border-border">
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis">{(t.modal as any).startX || "Start X"}</label>
+            <input type="number" step="1" value={params.startX} onChange={e => handleChange('startX', e.target.value)} className="w-full bg-secondary border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary transition-all" />
+          </div>
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis">{(t.modal as any).startY || "Start Y"}</label>
+            <input type="number" step="1" value={params.startY} onChange={e => handleChange('startY', e.target.value)} className="w-full bg-secondary border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary transition-all" />
+          </div>
           <div className="space-y-2">
             <label className="text-xs font-medium text-muted-foreground">{t.modal.height}</label>
             <input type="number" step="1" value={params.height} onChange={e => handleChange('height', e.target.value)} className="w-full bg-secondary border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary transition-all" />
