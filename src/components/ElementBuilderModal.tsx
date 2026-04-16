@@ -107,26 +107,45 @@ Guidelines:
 3. Use START to jump to interior walls.
 4. Output ONLY the commands. No extra text, no markdown code blocks.`;
 
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{
-            parts: [
-              { text: prompt },
-              {
-                inlineData: {
-                  mimeType: mimeType,
-                  data: base64Data
+      let response;
+      let retries = 0;
+      const maxRetries = 3;
+
+      while (retries < maxRetries) {
+        response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{
+              parts: [
+                { text: prompt },
+                {
+                  inlineData: {
+                    mimeType: mimeType,
+                    data: base64Data
+                  }
                 }
-              }
-            ]
-          }]
-        })
-      });
+              ]
+            }]
+          })
+        });
+
+        if (response.status === 503) {
+          // High demand, wait and retry
+          toast.info(`Server band, qayta urinilmoqda... (${retries + 1}/${maxRetries})`);
+          retries++;
+          await new Promise(r => setTimeout(r, 2000 * retries));
+          continue;
+        }
+        break;
+      }
+
+      if (!response || !response.ok) {
+         const errorData = await response?.json();
+         throw new Error(errorData?.error?.message || "Server bilan bog'lanishda xatolik");
+      }
 
       const data = await response.json();
-      if (data.error) throw new Error(data.error.message);
 
       const geminiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
       const cleanScript = geminiResponse.replace(/```[a-z]*\n?/gi, '').replace(/```/g, '').trim();
