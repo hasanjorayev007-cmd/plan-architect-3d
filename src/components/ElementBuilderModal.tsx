@@ -77,17 +77,49 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
     localStorage.setItem('gemini_api_key', geminiKey);
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 20000); // 20 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 45000); // 45 second timeout for slow servers
 
     try {
-      const reader = new FileReader();
-      const base64Promise = new Promise<string>((resolve) => {
-        reader.onload = () => resolve(reader.result as string);
-        reader.readAsDataURL(file);
-      });
-      const base64Image = await base64Promise;
-      const base64Data = base64Image.split(',')[1];
-      const mimeType = base64Image.split(';')[0].split(':')[1];
+      // Step 1: Resize and compress image for faster processing
+      toast.info("Rasm tayyorlanmoqda...");
+      
+      const compressImage = (f: File): Promise<string> => {
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(f);
+          reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target?.result as string;
+            img.onload = () => {
+              const canvas = document.createElement('canvas');
+              const MAX_WIDTH = 1024;
+              const MAX_HEIGHT = 1024;
+              let width = img.width;
+              let height = img.height;
+
+              if (width > height) {
+                if (width > MAX_WIDTH) {
+                  height *= MAX_WIDTH / width;
+                  width = MAX_WIDTH;
+                }
+              } else {
+                if (height > MAX_HEIGHT) {
+                  width *= MAX_HEIGHT / height;
+                  height = MAX_HEIGHT;
+                }
+              }
+              canvas.width = width;
+              canvas.height = height;
+              const ctx = canvas.getContext('2d');
+              ctx?.drawImage(img, 0, 0, width, height);
+              resolve(canvas.toDataURL('image/jpeg', 0.7).split(',')[1]);
+            };
+          };
+        });
+      };
+
+      const base64Data = await compressImage(file);
+      const mimeType = 'image/jpeg';
 
       const url = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${geminiKey}`;
 
@@ -113,6 +145,8 @@ Guidelines:
       let response;
       let retries = 0;
       const maxRetries = 2;
+
+      toast.info("Google serverlariga yuborilmoqda...");
 
       while (retries <= maxRetries) {
         try {
@@ -143,7 +177,7 @@ Guidelines:
           }
           break;
         } catch (fErr: any) {
-          if (fErr.name === 'AbortError') throw new Error("Vaqt tugadi (Timeout). Google serveri juda sekin ishlayapti.");
+          if (fErr.name === 'AbortError') throw new Error("Vaqt tugadi (Timeout). Rasm hajmini kichraytirdik, lekin Google serveri hali ham javob bermadi. Iltimos, yana bir bor urinib ko'ring.");
           throw fErr;
         }
       }
