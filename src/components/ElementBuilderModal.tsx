@@ -133,13 +133,15 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
         const result = parser.parse(promptInput);
         if (result.success) {
           result.walls.forEach(w => {
-            drawRotatedBox(w.startX, w.startY, 0, 0, 1, w.thickness, 300); // Angle is handled in coordinates by parser
             // Actually draw a box between two points
             const dx = w.endX - w.startX;
             const dy = w.endY - w.startY;
             const len = Math.sqrt(dx*dx + dy*dy);
             const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-            drawRotatedBox(w.startX, w.startY, 0, angle, len, w.thickness, 300);
+            
+            if (len > 0.1) {
+              drawRotatedBox(w.startX, w.startY, 0, angle, len, w.thickness, 300);
+            }
 
             w.openings.forEach(op => {
               const rad = angle * Math.PI / 180;
