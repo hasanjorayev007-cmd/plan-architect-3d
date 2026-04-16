@@ -2,6 +2,8 @@ import { useState, useRef, useCallback } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { CADParser } from '@/lib/CADParser';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export type BuilderModule = 'window' | 'door' | 'roof' | 'foundation' | 'house' | 'stairs' | 'floor' | 'wall' | 'path' | 'prompt';
 
@@ -26,6 +28,7 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
   const [tab, setTab] = useState<'ai' | 'manual'>('manual');
   const [stage, setStage] = useState<'idle' | 'processing' | 'done' | 'aiResults'>('idle');
   const [dragOver, setDragOver] = useState(false);
+  const [geminiKey, setGeminiKey] = useState(localStorage.getItem('gemini_api_key') || '');
   
   const [wallType, setWallType] = useState<'straight' | 'angled' | 'curved'>('straight');
   const [partsCount, setPartsCount] = useState<'1' | '2'>('1');
