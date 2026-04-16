@@ -1,8 +1,9 @@
 import { useState, useRef, useCallback } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
+import { CADParser } from '@/lib/CADParser';
 
-export type BuilderModule = 'window' | 'door' | 'roof' | 'foundation' | 'house' | 'stairs' | 'floor' | 'wall' | 'path';
+export type BuilderModule = 'window' | 'door' | 'roof' | 'foundation' | 'house' | 'stairs' | 'floor' | 'wall' | 'path' | 'prompt';
 
 type PathStepType = 'line' | 'turn_left' | 'turn_right' | 'door' | 'window' | 'arc';
 interface PathStep {
@@ -29,6 +30,7 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
   const [wallType, setWallType] = useState<'straight' | 'angled' | 'curved'>('straight');
   const [partsCount, setPartsCount] = useState<'1' | '2'>('1');
   const [hasGap, setHasGap] = useState<'no' | 'yes'>('no');
+  const [promptInput, setPromptInput] = useState('START 0 0\nWALL RIGHT 500\nDOOR 200 90\nWALL DOWN 400\nWINDOW 150 120\nWALL LEFT 500\nWALL UP 400');
   
   // Path Builder State - Updated to Centimeters
   const [pathSteps, setPathSteps] = useState<PathStep[]>([
@@ -126,7 +128,39 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
         } else drawBox(px, 0, 0, len, w, h);
       };
 
-      if (module === 'path') {
+      if (module === 'prompt') {
+        const parser = new CADParser();
+        const result = parser.parse(promptInput);
+        if (result.success) {
+          result.walls.forEach(w => {
+            drawRotatedBox(w.startX, w.startY, 0, 0, 1, w.thickness, 300); // Angle is handled in coordinates by parser
+            // Actually draw a box between two points
+            const dx = w.endX - w.startX;
+            const dy = w.endY - w.startY;
+            const len = Math.sqrt(dx*dx + dy*dy);
+            const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+            drawRotatedBox(w.startX, w.startY, 0, angle, len, w.thickness, 300);
+
+            w.openings.forEach(op => {
+              const rad = angle * Math.PI / 180;
+              const ux = Math.cos(rad);
+              const uy = Math.sin(rad);
+              const osX = w.startX + ux * op.offset;
+              const osY = w.startY + uy * op.offset;
+              
+              if (op.type === 'door') {
+                drawRotatedBox(osX, osY, 210, angle, op.width, w.thickness, 300 - 210);
+              } else {
+                const wh = op.height || 150;
+                const sh = op.sillHeight || 90;
+                drawRotatedBox(osX, osY, 0, angle, op.width, w.thickness, sh);
+                drawRotatedBox(osX, osY, sh + wh, angle, op.width, w.thickness, 300 - (sh + wh));
+              }
+            });
+          });
+        }
+      }
+      else if (module === 'path') {
         const wt = p('wallThickness', 30), h = p('height', 300);
         let currX = p('startX', 0), currY = p('startY', 0), currAngle = 0; 
 
@@ -342,8 +376,25 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
     );
   };
 
+  const renderPromptFields = () => {
+    return (
+      <div className="space-y-4">
+        <p className="text-xs text-muted-foreground bg-primary/5 p-3 rounded-lg border border-primary/10">
+          Ushbu maydonga AI (Claude/GPT) tomonidan tayyorlangan buyruqlarni tashlang. Har bir buyruq yangi qatorda bo'lishi kerak.
+        </p>
+        <textarea 
+          value={promptInput}
+          onChange={(e) => setPromptInput(e.target.value)}
+          className="w-full h-64 bg-secondary font-monospace text-sm p-4 rounded-xl border border-border focus:ring-1 focus:ring-primary outline-none transition-all"
+          placeholder="THICK 30&#10;START 0 0&#10;WALL RIGHT 500..."
+        />
+      </div>
+    );
+  };
+
   const renderManualFields = () => {
     if (module === 'path') return renderPathBuilderFields();
+    if (module === 'prompt') return renderPromptFields();
 
     const fieldsMap: Record<BuilderModule, string[]> = {
       house: ['length', 'width', 'height', 'wallThickness'],

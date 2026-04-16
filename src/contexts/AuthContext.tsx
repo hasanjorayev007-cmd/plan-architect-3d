@@ -9,8 +9,8 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 const ADMIN_USERNAME = 'admin';
-const ADMIN_PASSWORD = 'floorplan3d';
-const ADMIN_CODE = 'ARCH2024';
+const ADMIN_PASSWORD = '123';
+const ADMIN_CODE = '2026';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);

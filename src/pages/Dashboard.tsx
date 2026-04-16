@@ -22,6 +22,7 @@ const Dashboard = () => {
     { id: 'roof', title: t.modules.roof.title, desc: t.modules.roof.desc, icon: "M2 10l10-8 10 8v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z" },
     { id: 'stairs', title: t.modules.stairs.title, desc: t.modules.stairs.desc, icon: "M14 14v6h4v-10h-4M6 20h4v-6H6M10 14h4V8h-4" },
     { id: 'floor', title: t.modules.floor.title, desc: t.modules.floor.desc, icon: "M2 16h20 M2 20h20 M5 12l7 5 l7-5" },
+    { id: 'prompt', title: t.modules.prompt.title, desc: t.modules.prompt.desc, icon: "M8 9l3 3-3 3m5 0h3" },
   ];
 
   return (

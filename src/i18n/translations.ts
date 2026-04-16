@@ -40,6 +40,7 @@ export const translations = {
       floor: { title: "Pol yaratish", desc: "Ichki zamin qoplamasi" },
       wall: { title: "Devor ko'tarish", desc: "Maxsus tuzilma devorlari" },
       path: { title: "Uzluksiz Marshrut", desc: "Ketma-ket chizma eksperti" },
+      prompt: { title: "AI Buyruqlar", desc: "Matnli buyruqlar orqali chizish" },
     },
     modal: {
       createTitle: "yaratish",
@@ -148,6 +149,7 @@ export const translations = {
       floor: { title: "Add Floor", desc: "Interior base covering" },
       wall: { title: "Construct Wall", desc: "Special structure walls" },
       path: { title: "Continuous Path", desc: "Step-by-step drawing expert" },
+      prompt: { title: "AI Prompt CAD", desc: "Draw using text commands" },
     },
     modal: {
       createTitle: "creation",
@@ -253,6 +255,7 @@ export const translations = {
       floor: { title: "Создать Пол", desc: "Внутреннее покрытие" },
       wall: { title: "Построить стену", desc: "Специальные стены" },
       path: { title: "Сплошной путь", desc: "Пошаговое рисование" },
+      prompt: { title: "ИИ Команды", desc: "Рисование текстовыми командами" },
     },
     modal: {
       createTitle: "(генерация)",
