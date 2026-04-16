@@ -604,7 +604,7 @@ Guidelines:
                 </div>
               )}
 
-              {tab === 'ai' && module !== 'path' && (
+              {tab === 'ai' && (
                 <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2">
                   <div className="space-y-2 p-4 bg-primary/5 rounded-xl border border-primary/10">
                     <label className="text-xs font-bold text-primary uppercase tracking-wider">Google Gemini API Key</label>
