@@ -76,6 +76,9 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
     setStage('processing');
     localStorage.setItem('gemini_api_key', geminiKey);
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 20000); // 20 second timeout
+
     try {
       const reader = new FileReader();
       const base64Promise = new Promise<string>((resolve) => {
@@ -109,36 +112,43 @@ Guidelines:
 
       let response;
       let retries = 0;
-      const maxRetries = 3;
+      const maxRetries = 2;
 
-      while (retries < maxRetries) {
-        response = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{
-              parts: [
-                { text: prompt },
-                {
-                  inlineData: {
-                    mimeType: mimeType,
-                    data: base64Data
+      while (retries <= maxRetries) {
+        try {
+          response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            signal: controller.signal,
+            body: JSON.stringify({
+              contents: [{
+                parts: [
+                  { text: prompt },
+                  {
+                    inlineData: {
+                      mimeType: mimeType,
+                      data: base64Data
+                    }
                   }
-                }
-              ]
-            }]
-          })
-        });
+                ]
+              }]
+            })
+          });
 
-        if (response.status === 503) {
-          // High demand, wait and retry
-          toast.info(`Server band, qayta urinilmoqda... (${retries + 1}/${maxRetries})`);
-          retries++;
-          await new Promise(r => setTimeout(r, 2000 * retries));
-          continue;
+          if (response.status === 503 || response.status === 429) {
+            toast.info(`Server band, qayta urinilmoqda... (${retries + 1}/${maxRetries + 1})`);
+            retries++;
+            await new Promise(r => setTimeout(r, 2000 * retries));
+            continue;
+          }
+          break;
+        } catch (fErr: any) {
+          if (fErr.name === 'AbortError') throw new Error("Vaqt tugadi (Timeout). Google serveri juda sekin ishlayapti.");
+          throw fErr;
         }
-        break;
       }
+
+      clearTimeout(timeoutId);
 
       if (!response || !response.ok) {
          const errorData = await response?.json();
