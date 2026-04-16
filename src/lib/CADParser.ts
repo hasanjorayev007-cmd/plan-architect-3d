@@ -72,6 +72,10 @@ export class CADParser {
             else if (dir === 'RIGHT') this.currentAngle -= angle;
             else throw "TURN direction must be LEFT or RIGHT";
             break;
+          case 'ARC':
+            if (parts.length < 3) throw "ARC needs RADIUS and ANGLE";
+            this.addArc(parseFloat(parts[1]), parseFloat(parts[2]));
+            break;
           default:
             // Relaxed parsing: if it looks like a coordinate, ignore or log
             if (!isNaN(parseFloat(cmd))) continue; 
@@ -115,6 +119,18 @@ export class CADParser {
     this.walls.push(newWall);
     this.currentX = endX;
     this.currentY = endY;
+  }
+
+  private addArc(radius: number, sweepAngle: number) {
+    const segments = 12;
+    const dAngle = sweepAngle / segments;
+    const arcLen = (Math.abs(sweepAngle) * Math.PI / 180) * radius;
+    const dl = arcLen / segments;
+
+    for (let i = 0; i < segments; i++) {
+      this.currentAngle += dAngle;
+      this.addWall("CURRENT", dl); // Uses currentAngle
+    }
   }
 
   private addOpening(type: 'door' | 'window', offset: number, width: number, h?: number, sh?: number) {
