@@ -73,8 +73,12 @@ export class CADParser {
             else throw "TURN direction must be LEFT or RIGHT";
             break;
           case 'ARC':
-            if (parts.length < 3) throw "ARC needs RADIUS and ANGLE";
-            this.addArc(parseFloat(parts[1]), parseFloat(parts[2]));
+            if (parts.length < 4) throw "ARC needs DIRECTION (LEFT/RIGHT), ANGLE and RADIUS";
+            const arcDir = parts[1];
+            const arcAngle = parseFloat(parts[2]);
+            const arcRadius = parseFloat(parts[3]);
+            const finalSweep = arcDir === 'LEFT' ? arcAngle : -arcAngle;
+            this.addArc(arcRadius, finalSweep);
             break;
           default:
             // Relaxed parsing: if it looks like a coordinate, ignore or log
