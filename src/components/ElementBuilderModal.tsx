@@ -557,7 +557,7 @@ Guidelines:
         </div>
 
         {/* Tabs */}
-        {module !== 'path' && (
+        {(
           <div className="flex border-b border-border shrink-0">
             <button className={`flex-1 py-3 text-sm font-medium transition-colors ${tab === 'manual' ? 'border-b-2 border-primary text-primary' : 'text-muted-foreground hover:text-foreground'}`} onClick={() => setTab('manual')}>
               {t.modal.manual}
