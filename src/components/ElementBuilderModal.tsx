@@ -162,11 +162,8 @@ Guidelines:
 
       if (cleanScript) {
         setPromptInput(cleanScript);
-        setTab('manual');
-        setTimeout(() => {
-          setStage('idle');
-          toast.success("AI chizmani tahlil qildi!");
-        }, 500);
+        setStage('aiResults');
+        toast.success("AI chizmani tahlil qildi!");
       } else {
         throw new Error("AI dan natija kelmadi.");
       }
