@@ -63,12 +63,86 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
 
   if (!module) return null;
 
-  const performAIAnalysis = () => {
+  const performAIAnalysis = async (file: File) => {
+    if (!geminiKey) {
+      toast.error("Iltimos, avval Gemini API Keyni kiriting!");
+      setTab('ai');
+      return;
+    }
+
     setStage('processing');
-    setTimeout(() => {
-      setParams(prev => ({ ...prev, length: '850', width: '420', height: '280' }));
-      setStage('aiResults');
-    }, 2500);
+    localStorage.setItem('gemini_api_key', geminiKey);
+
+    try {
+      const reader = new FileReader();
+      const base64Promise = new Promise<string>((resolve) => {
+        reader.onload = () => resolve(reader.result as string);
+        reader.readAsDataURL(file);
+      });
+      const base64Image = await base64Promise;
+      const base64Data = base64Image.split(',')[1];
+      const mimeType = base64Image.split(';')[0].split(':')[1];
+
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`;
+
+      const prompt = `You are a specialist architectural parser. 
+Analyze the provided 2D floor plan image. 
+Extract all outer walls, inner walls, doors, and windows.
+Dimensions in the image are likely in MM, but output them in CENTIMETERS (e.g. 6000mm -> 600).
+Produce a script using ONLY the following commands:
+THICK value (set wall thickness, default 30)
+START X Y (set start point)
+WALL DIRECTION LENGTH (DIRECTION: UP, DOWN, LEFT, RIGHT. LENGTH: number in cm)
+DOOR offset width (add door to the last wall)
+WINDOW offset width height sill (add window to the last wall)
+ARC LEFT/RIGHT angle radius (add an arc)
+TURN LEFT/RIGHT angle (turn world orientation)
+
+Guidelines:
+1. Start at a logical corner (0 0).
+2. Trace the perimeter first.
+3. Use START to jump to interior walls.
+4. Output ONLY the commands. No extra text, no markdown code blocks.`;
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              { text: prompt },
+              {
+                inlineData: {
+                  mimeType: mimeType,
+                  data: base64Data
+                }
+              }
+            ]
+          }]
+        })
+      });
+
+      const data = await response.json();
+      if (data.error) throw new Error(data.error.message);
+
+      const geminiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      const cleanScript = geminiResponse.replace(/```[a-z]*\n?/gi, '').replace(/```/g, '').trim();
+
+      if (cleanScript) {
+        setPromptInput(cleanScript);
+        setTab('manual');
+        setTimeout(() => {
+          setStage('idle');
+          toast.success("AI chizmani tahlil qildi!");
+        }, 500);
+      } else {
+        throw new Error("AI dan natija kelmadi.");
+      }
+    } catch (err: any) {
+      console.error('AI Error:', err);
+      toast.error("AI tahlilida xatolik: " + err.message);
+      setStage('idle');
+    }
   };
 
   const handleCreate = () => {
@@ -294,7 +368,7 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault(); setDragOver(false);
-    if (e.dataTransfer.files[0]) performAIAnalysis();
+    if (e.dataTransfer.files[0]) performAIAnalysis(e.dataTransfer.files[0]);
   }, []);
 
   const renderPathBuilderFields = () => {
@@ -529,8 +603,20 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
 
               {tab === 'ai' && module !== 'path' && (
                 <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2">
+                  <div className="space-y-2 p-4 bg-primary/5 rounded-xl border border-primary/10">
+                    <label className="text-xs font-bold text-primary uppercase tracking-wider">Google Gemini API Key</label>
+                    <input 
+                      type="password" 
+                      value={geminiKey} 
+                      onChange={e => setGeminiKey(e.target.value)}
+                      placeholder="AIzaSy..." 
+                      className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none"
+                    />
+                    <p className="text-[10px] text-muted-foreground">Kalitingiz faqat brauzeringizda saqlanadi.</p>
+                  </div>
+                  
                   <div onDragOver={e => { e.preventDefault(); setDragOver(true); }} onDragLeave={() => setDragOver(false)} onDrop={handleDrop} onClick={() => fileRef.current?.click()} className={`relative border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-all ${dragOver ? 'border-primary bg-primary/5 scale-[1.02]' : 'border-border hover:border-primary/50'}`}>
-                    <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={e => { if (e.target.files && e.target.files.length > 0) performAIAnalysis(); }} />
+                    <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={e => { if (e.target.files && e.target.files.length > 0) performAIAnalysis(e.target.files[0]); }} />
                     <p className="text-sm font-medium transition-colors">{t.modal.dropMain}</p>
                     <p className="text-xs text-muted-foreground mt-1">{t.modal.dropSub}</p>
                   </div>
