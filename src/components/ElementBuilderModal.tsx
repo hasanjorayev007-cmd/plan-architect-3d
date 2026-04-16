@@ -86,7 +86,7 @@ export const ElementBuilderModal = ({ module, onClose }: ElementBuilderModalProp
       const base64Data = base64Image.split(',')[1];
       const mimeType = base64Image.split(';')[0].split(':')[1];
 
-      const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${geminiKey}`;
+      const url = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${geminiKey}`;
 
       const prompt = `You are a specialist architectural parser. 
 Analyze the provided 2D floor plan image. 
